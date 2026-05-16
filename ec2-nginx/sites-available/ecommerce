@@ -1,19 +1,19 @@
 server {
     listen 80;
-    server_name ecommerce-grupo2.duckdns.org;
+    server_name freck.lat;
     return 301 https://$host$request_uri;
 }
 
 server {
     listen 443 ssl;
     http2 on;
-    server_name ecommerce-grupo2.duckdns.org;
+    server_name freck.lat;
 
     # TLS 1.3 ONLY
     ssl_protocols TLSv1.3;
     ssl_conf_command Ciphersuites TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256;
-    ssl_certificate /etc/letsencrypt/live/ecommerce-grupo2.duckdns.org/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/ecommerce-grupo2.duckdns.org/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/freck.lat/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/freck.lat/privkey.pem;
 
     # Security headers
     add_header Strict-Transport-Security "max-age=63072000" always;
