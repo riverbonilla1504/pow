@@ -1,40 +1,47 @@
 require('dotenv').config();
 const amqp = require('amqplib');
+const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
 
 const QUEUE = 'q.notify.sms';
 const MAX_RETRIES = 3;
 
-let twilioClient = null;
-
-function getTwilioClient() {
-    if (!twilioClient) {
-        const twilio = require('twilio');
-        twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+const sns = new SNSClient({
+    region: process.env.AWS_REGION || 'us-east-1',
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     }
-    return twilioClient;
-}
+});
 
 const SMS_TEMPLATES = {
     high_value_order: (data) =>
-        `ECommerce: Your order #${data.orderId.slice(0, 8)} for $${data.total} has been confirmed.`,
+        `ECommerce: Order #${data.orderId.slice(0, 8)} for $${data.total} confirmed.`,
     order_shipped: (data) =>
-        `ECommerce: Your order #${data.orderId.slice(0, 8)} has shipped!`
+        `ECommerce: Order #${data.orderId.slice(0, 8)} has shipped!`,
+    totp_code: (data) =>
+        `Your ECommerce verification code: ${data.code}. Expires in 5 minutes.`
 };
 
 async function sendSMS(event) {
     const template = SMS_TEMPLATES[event.type];
-    if (!template) {
-        throw new Error(`Unknown SMS template: ${event.type}`);
-    }
+    if (!template) throw new Error(`Unknown SMS template: ${event.type}`);
 
-    const body = template(event);
-    const client = getTwilioClient();
+    const message = template(event);
 
-    await client.messages.create({
-        body,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: event.phone
-    });
+    await sns.send(new PublishCommand({
+        Message: message,
+        PhoneNumber: event.phone,
+        MessageAttributes: {
+            'AWS.SNS.SMS.SMSType': {
+                DataType: 'String',
+                StringValue: event.type === 'totp_code' ? 'Transactional' : 'Promotional'
+            },
+            'AWS.SNS.SMS.SenderID': {
+                DataType: 'String',
+                StringValue: 'ECommerce'
+            }
+        }
+    }));
 
     console.log(`SMS sent to ${event.phone} [${event.type}]`);
 }
@@ -42,7 +49,6 @@ async function sendSMS(event) {
 async function start() {
     const connection = await amqp.connect(process.env.RABBITMQ_URL);
     const channel = await connection.createChannel();
-
     await channel.prefetch(3);
 
     console.log(`SMS worker listening on ${QUEUE}`);

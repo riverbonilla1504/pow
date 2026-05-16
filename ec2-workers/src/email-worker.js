@@ -1,17 +1,15 @@
 require('dotenv').config();
 const amqp = require('amqplib');
-const nodemailer = require('nodemailer');
+const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 
 const QUEUE = 'q.notify.email';
 const MAX_RETRIES = 3;
 
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: false,
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
+const ses = new SESClient({
+    region: process.env.AWS_REGION || 'us-east-1',
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     }
 });
 
@@ -20,37 +18,44 @@ const EMAIL_TEMPLATES = {
         subject: `Order Confirmed - #${data.orderId.slice(0, 8)}`,
         html: `<h2>Order Confirmed!</h2>
                <p>Your order for <strong>$${data.total}</strong> has been received.</p>
-               <p>Order ID: ${data.orderId}</p>
-               <p>We'll notify you when it ships.</p>`
+               <p>Order ID: <code>${data.orderId}</code></p>
+               <p>Status: ${data.status}</p>
+               <p>We'll notify you when it ships.</p>`,
+        text: `Order Confirmed! Your order for $${data.total} has been received. Order ID: ${data.orderId}`
     }),
     order_shipped: (data) => ({
         subject: `Order Shipped - #${data.orderId.slice(0, 8)}`,
         html: `<h2>Your Order Has Shipped!</h2>
-               <p>Order ID: ${data.orderId}</p>
-               <p>Your package is on its way.</p>`
+               <p>Order ID: <code>${data.orderId}</code></p>
+               <p>Your package is on its way.</p>`,
+        text: `Your order #${data.orderId} has shipped!`
     }),
     order_returned: (data) => ({
         subject: `Return Processed - #${data.orderId.slice(0, 8)}`,
         html: `<h2>Return Processed</h2>
-               <p>Order ID: ${data.orderId}</p>
-               <p>Your return has been processed. Refund will appear in 3-5 business days.</p>`
+               <p>Order ID: <code>${data.orderId}</code></p>
+               <p>Your return has been processed. Refund will appear in 3-5 business days.</p>`,
+        text: `Return processed for order #${data.orderId}. Refund in 3-5 business days.`
     })
 };
 
 async function sendEmail(event) {
     const template = EMAIL_TEMPLATES[event.type];
-    if (!template) {
-        throw new Error(`Unknown email template: ${event.type}`);
-    }
+    if (!template) throw new Error(`Unknown email template: ${event.type}`);
 
-    const { subject, html } = template(event);
+    const { subject, html, text } = template(event);
 
-    await transporter.sendMail({
-        from: process.env.EMAIL_FROM,
-        to: event.email,
-        subject,
-        html
-    });
+    await ses.send(new SendEmailCommand({
+        Source: process.env.SES_FROM_EMAIL,
+        Destination: { ToAddresses: [event.email] },
+        Message: {
+            Subject: { Data: subject, Charset: 'UTF-8' },
+            Body: {
+                Html: { Data: html, Charset: 'UTF-8' },
+                Text: { Data: text, Charset: 'UTF-8' }
+            }
+        }
+    }));
 
     console.log(`Email sent to ${event.email} [${event.type}]`);
 }
@@ -58,7 +63,6 @@ async function sendEmail(event) {
 async function start() {
     const connection = await amqp.connect(process.env.RABBITMQ_URL);
     const channel = await connection.createChannel();
-
     await channel.prefetch(5);
 
     console.log(`Email worker listening on ${QUEUE}`);
