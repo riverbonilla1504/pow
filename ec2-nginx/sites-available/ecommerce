@@ -5,12 +5,13 @@ server {
 }
 
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
     server_name ecommerce-grupo2.duckdns.org;
 
     # TLS 1.3 ONLY
     ssl_protocols TLSv1.3;
-    ssl_ciphers TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256;
+    ssl_conf_command Ciphersuites TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256;
     ssl_certificate /etc/letsencrypt/live/ecommerce-grupo2.duckdns.org/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/ecommerce-grupo2.duckdns.org/privkey.pem;
 
