@@ -1,0 +1,9 @@
+node_modules/
+.env
+*.pem
+*.key
+unpacked_planning/
+dist/
+coverage/
+.DS_Store
+*.log

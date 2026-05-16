@@ -1,0 +1,16 @@
+{
+  "name": "notification-workers",
+  "version": "1.0.0",
+  "description": "Email and SMS notification consumers for RabbitMQ",
+  "scripts": {
+    "start:email": "node src/email-worker.js",
+    "start:sms": "node src/sms-worker.js",
+    "start": "pm2 start ecosystem.config.js"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.4",
+    "dotenv": "^16.4.5",
+    "nodemailer": "^6.9.14",
+    "twilio": "^5.2.0"
+  }
+}
