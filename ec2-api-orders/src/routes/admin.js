@@ -74,13 +74,24 @@ router.get('/notifications', authenticate, authorize('admin'), require2FA, async
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
         const offset = (page - 1) * limit;
+        const type = req.query.type;
+        const status = req.query.status;
+
+        const conditions = [];
+        const countParams = [];
+        let paramIdx = 1;
+        if (type) { conditions.push(`type = $${paramIdx++}`); countParams.push(type); }
+        if (status) { conditions.push(`status = $${paramIdx++}`); countParams.push(status); }
+        const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+        const queryParams = [...countParams, limit, offset];
 
         const [logs, total] = await Promise.all([
             pool.query(
-                `SELECT * FROM notification_logs ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
-                [limit, offset]
+                `SELECT * FROM notification_logs ${where} ORDER BY created_at DESC LIMIT $${paramIdx++} OFFSET $${paramIdx}`,
+                queryParams
             ),
-            pool.query('SELECT COUNT(*) as count FROM notification_logs')
+            pool.query(`SELECT COUNT(*) as count FROM notification_logs ${where}`, countParams)
         ]);
 
         res.json({
@@ -128,10 +139,25 @@ router.get('/dlq', authenticate, authorize('admin'), require2FA, async (req, res
 // GET /admin/users
 router.get('/users', authenticate, authorize('admin'), require2FA, async (req, res) => {
     try {
-        const result = await pool.query(
-            'SELECT id, email, role, totp_enabled, phone, created_at FROM users ORDER BY created_at DESC'
-        );
-        res.json({ users: result.rows });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const offset = (page - 1) * limit;
+
+        const [users, total] = await Promise.all([
+            pool.query(
+                `SELECT id, email, role, totp_enabled as two_factor_enabled, phone, created_at
+                 FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+                [limit, offset]
+            ),
+            pool.query('SELECT COUNT(*) as count FROM users')
+        ]);
+
+        res.json({
+            users: users.rows,
+            total: parseInt(total.rows[0].count),
+            page,
+            pages: Math.ceil(parseInt(total.rows[0].count) / limit)
+        });
     } catch (err) {
         console.error('Users list error:', err.message);
         res.status(500).json({ error: 'Failed to list users' });

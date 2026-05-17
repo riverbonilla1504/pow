@@ -41,10 +41,22 @@ export const register = (email: string, password: string, phone?: string) =>
   req<any>('/auth/register', { method: 'POST', body: JSON.stringify({ email, password, phone }) });
 
 export const verify2fa = (code: string, tempToken: string) =>
-  req<any>('/auth/2fa/verify', { method: 'POST', body: JSON.stringify({ code }) }, tempToken);
+  req<any>('/auth/2fa/verify', { method: 'POST', body: JSON.stringify({ code, tempToken }) });
 
 export const enroll2fa = () =>
   req<any>('/auth/2fa/enroll', { method: 'POST' });
+
+export const confirm2fa = (code: string) =>
+  req<any>('/auth/2fa/confirm', { method: 'POST', body: JSON.stringify({ code }) });
+
+export function getTokenPayload(): any {
+  const t = getToken();
+  if (!t) return null;
+  try {
+    const payload = t.split('.')[1];
+    return JSON.parse(atob(payload));
+  } catch { return null; }
+}
 
 // User — orders
 export const myOrders = () => req<any>('/orders');

@@ -28,8 +28,11 @@ export default function DLQPage() {
   }
 
   function parsePayload(msg: any) {
-    try { return JSON.stringify(JSON.parse(msg.content || msg.payload || '{}'), null, 2); }
-    catch { return msg.content || msg.payload || '{}'; }
+    const data = msg.content || msg.payload;
+    if (!data) return '{}';
+    if (typeof data === 'object') return JSON.stringify(data, null, 2);
+    try { return JSON.stringify(JSON.parse(data), null, 2); }
+    catch { return data; }
   }
 
   return (
@@ -78,8 +81,8 @@ export default function DLQPage() {
             {messages.map((msg: any, i: number) => {
               const open = expanded.has(i);
               const payload = parsePayload(msg);
-              const routingKey = msg.routingKey || msg.routing_key || msg.properties?.headers?.['x-routing-key'] || '—';
-              const deaths = msg.properties?.headers?.['x-death']?.[0]?.count ?? msg.deathCount ?? '?';
+              const routingKey = msg.fields?.routingKey || msg.routingKey || msg.routing_key || '—';
+              const deaths = msg.properties?.headers?.['x-death']?.[0]?.count ?? '?';
               const ts = msg.properties?.timestamp ? new Date(msg.properties.timestamp * 1000) : null;
 
               return (

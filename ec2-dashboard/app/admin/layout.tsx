@@ -1,19 +1,36 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { hasToken } from '@/lib/api';
+import { hasToken, getTokenPayload } from '@/lib/api';
 import AdminSidebar from '@/components/admin/Sidebar';
+import TwoFactorSetup from '@/components/admin/TwoFactorSetup';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const [ready, setReady] = useState(false);
+  const [state, setState] = useState<'loading' | 'no-auth' | 'needs-2fa' | 'ready'>('loading');
 
   useEffect(() => {
-    if (!hasToken()) router.replace('/login');
-    else setReady(true);
-  }, [router]);
+    if (!hasToken()) {
+      window.location.href = 'https://freck.lat/login';
+      return;
+    }
+    const payload = getTokenPayload();
+    if (!payload) {
+      window.location.href = 'https://freck.lat/login';
+      return;
+    }
+    if (payload.role !== 'admin') {
+      window.location.href = 'https://freck.lat/dashboard';
+      return;
+    }
+    if (!payload.twoFactorVerified) {
+      setState('needs-2fa');
+      return;
+    }
+    setState('ready');
+  }, []);
 
-  if (!ready) return null;
+  if (state === 'loading' || state === 'no-auth') return null;
+
+  if (state === 'needs-2fa') return <TwoFactorSetup />;
 
   return (
     <div className="flex min-h-screen">
