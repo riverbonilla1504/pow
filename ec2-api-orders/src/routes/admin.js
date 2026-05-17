@@ -40,20 +40,30 @@ router.get('/orders', authenticate, authorize('admin'), require2FA, async (req, 
         const offset = (page - 1) * limit;
         const status = req.query.status;
 
-        const where = status ? 'WHERE o.status = $3' : '';
-        const params = status ? [limit, offset, status] : [limit, offset];
+        let listQuery;
+        let listParams;
+        let countQuery;
+        let countParams;
+
+        if (status) {
+            listQuery = `SELECT o.*, u.email as user_email, u.phone as user_phone
+                 FROM orders o JOIN users u ON o.user_id = u.id
+                 WHERE o.status = $3 ORDER BY o.created_at DESC LIMIT $1 OFFSET $2`;
+            listParams = [limit, offset, status];
+            countQuery = 'SELECT COUNT(*) as count FROM orders o WHERE o.status = $1';
+            countParams = [status];
+        } else {
+            listQuery = `SELECT o.*, u.email as user_email, u.phone as user_phone
+                 FROM orders o JOIN users u ON o.user_id = u.id
+                 ORDER BY o.created_at DESC LIMIT $1 OFFSET $2`;
+            listParams = [limit, offset];
+            countQuery = 'SELECT COUNT(*) as count FROM orders o';
+            countParams = [];
+        }
 
         const [orders, total] = await Promise.all([
-            pool.query(
-                `SELECT o.*, u.email as user_email, u.phone as user_phone
-                 FROM orders o JOIN users u ON o.user_id = u.id
-                 ${where} ORDER BY o.created_at DESC LIMIT $1 OFFSET $2`,
-                params
-            ),
-            pool.query(
-                `SELECT COUNT(*) as count FROM orders o ${where}`,
-                status ? [status] : []
-            )
+            pool.query(listQuery, listParams),
+            pool.query(countQuery, countParams)
         ]);
 
         res.json({
@@ -88,7 +98,9 @@ router.get('/notifications', authenticate, authorize('admin'), require2FA, async
 
         const [logs, total] = await Promise.all([
             pool.query(
-                `SELECT * FROM notification_logs ${where} ORDER BY created_at DESC LIMIT $${paramIdx++} OFFSET $${paramIdx}`,
+                `SELECT id, order_id, type, status, recipient, template,
+                        error_msg AS error_message, created_at
+                 FROM notification_logs ${where} ORDER BY created_at DESC LIMIT $${paramIdx++} OFFSET $${paramIdx}`,
                 queryParams
             ),
             pool.query(`SELECT COUNT(*) as count FROM notification_logs ${where}`, countParams)
