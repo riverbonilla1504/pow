@@ -68,6 +68,18 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -t rsa,ed25519 -H 52.21.124.113 >> ~/.ssh/known_hosts 2>/dev/null
 
+      - name: Debug SSH key
+        run: |
+          echo "Key lines: $(wc -l < ~/.ssh/id_rsa)"
+          echo "Key first line: $(head -1 ~/.ssh/id_rsa)"
+          echo "Key last line: $(tail -1 ~/.ssh/id_rsa)"
+          echo "Permissions: $(ls -la ~/.ssh/id_rsa)"
+          ssh-keygen -l -f ~/.ssh/id_rsa 2>&1 || echo "Key validation failed"
+
+      - name: Test bastion SSH
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@52.21.124.113 "echo bastion-ok" 2>&1
+
       - name: Deploy API
         run: >
           ssh -i ~/.ssh/id_rsa
