@@ -16,11 +16,24 @@ E-Commerce notification system deployed across 5 AWS EC2 instances. The workflow
 | ec2-workers | 10.0.2.250 | SES email + SNS SMS consumers |
 | ec2-database | 10.0.2.152 | PostgreSQL 16 |
 
-All private instances (10.0.2.x) are in a private subnet with no direct internet access. SSH into them via bastion:
+All private instances (10.0.2.x) are in a private subnet with no direct internet access. Claude connects to them directly via SSH through the bastion — no need to ask the user to run commands manually.
+
+SSH key is at `C:\PROGRAMACION\pow\pow.pem`. Connect with:
 
 ```bash
-ssh -i pow.pem -o ProxyCommand="ssh -i pow.pem ubuntu@52.21.124.113 -W %h:%p" ubuntu@10.0.2.160
+ssh -i C:\PROGRAMACION\pow\pow.pem -o StrictHostKeyChecking=no \
+  -o ProxyCommand="ssh -i C:\PROGRAMACION\pow\pow.pem -o StrictHostKeyChecking=no ubuntu@52.21.124.113 -W %h:%p" \
+  ubuntu@<private-ip>
 ```
+
+## AWS CLI Access
+
+Claude has AWS CLI access via `python -m awscli` with the following credentials already configured in the environment:
+
+- `AWS_DEFAULT_REGION=us-east-1`
+- Access key and secret are stored in the user's local environment — ask the user if needed.
+
+IAM user `claude` belongs to group `claudessdsasas` with policies: `AmazonSESFullAccess`, `AmazonSNSFullAccess`, `AmazonSSMFullAccess`. Does **not** have IAM management permissions (`iam:AttachRolePolicy` etc.).
 
 ## Running Services
 
