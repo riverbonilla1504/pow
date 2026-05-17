@@ -119,3 +119,11 @@ PostgreSQL 16 on `10.0.2.152:5432`, database `ecommerce`, user `appuser`. Schema
 ```bash
 sudo -u postgres psql ecommerce < /home/ubuntu/pow/ec2-database/migrations/001_initial_schema.sql
 ```
+
+## Pending
+
+- **PM2 startup on ec2-api-orders** — not configured yet. On the instance run: `sudo env PATH=$PATH:$(dirname $(which node)) pm2 startup systemd -u ubuntu --hp /home/ubuntu && pm2 save`
+- **Clear user data scripts** — set during SSM recovery, must be removed via AWS Console → EC2 → each private instance → Actions → Instance settings → Edit user data. Instances: `i-0df63276ce533d15f`, `i-0c13a0092bdd8548d`, `i-04b2ffc83d459a64f`, `i-0b3cef562ac43accc`
+- **Test SMS end-to-end** — sms-worker is running but untested. SNS sandbox requires verifying the destination phone number first (AWS Console → SNS → Text messaging → Sandbox destination phone numbers). Trigger by creating an order with `total > 500` and a `phone` field.
+- **Fix deploy.sh** — `REPO_URL` is still a placeholder, change to `git@github.com:riverbonilla1504/pow.git`
+- **Next.js dashboard** — deferred. Admin UI to view orders, notification status, DLQ contents and metrics.
