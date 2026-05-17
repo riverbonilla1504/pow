@@ -68,19 +68,6 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -t rsa,ed25519 -H 52.21.124.113 >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Debug SSH key
-        run: |
-          KEY_LINES=$(wc -l < ~/.ssh/id_rsa)
-          echo "Key lines: $KEY_LINES"
-          head -1 ~/.ssh/id_rsa
-          tail -1 ~/.ssh/id_rsa
-          ls -la ~/.ssh/id_rsa
-          ssh-keygen -l -f ~/.ssh/id_rsa
-          if [ "$KEY_LINES" -lt 5 ]; then
-            echo "ERROR: Key file is too short — SSH_PRIVATE_KEY secret may not be set"
-            exit 1
-          fi
-
       - name: Deploy API
         run: >
           ssh -i ~/.ssh/id_rsa
