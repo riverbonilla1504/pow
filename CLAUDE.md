@@ -135,6 +135,12 @@ sudo -u postgres psql ecommerce < /home/ubuntu/pow/ec2-database/migrations/001_i
 
 ## Pending
 
-- **Clear user data scripts** — set during SSM recovery, must be removed via AWS Console → EC2 → each private instance → Actions → Instance settings → Edit user data. Instances: `i-0df63276ce533d15f`, `i-0c13a0092bdd8548d`, `i-04b2ffc83d459a64f`, `i-0b3cef562ac43accc`
-- **Test SMS end-to-end** — DONE. SNS is NOT in sandbox (publish works directly). Tested 2026-05-16: order with total > 500 triggers `order.created.sms` → sms-worker → SNS → SMS delivered to +573219710852.
-- **Next.js dashboard** — deferred. Admin UI to view orders, notification status, DLQ contents and metrics.
+(none)
+
+## Completed
+
+- **PM2 startup** — configured on ec2-api-orders and ec2-workers (systemd + pm2 save)
+- **SMS end-to-end** — Twilio integration working. Order with total > 500 triggers `order.created.sms` → sms-worker → Twilio → delivered. Colombian carriers may block trial SMS but Twilio confirms delivery.
+- **Fix deploy.sh** — REPO_URL set to `git@github.com:riverbonilla1504/pow.git`
+- **Clear user data scripts** — removed
+- **Next.js dashboard** — live. `freck.lat` = landing + user section, `admin.freck.lat` = admin panel. Single Next.js 16 app on ec2-api-orders port 3001, PM2 process `dashboard`. Admin pages: dashboard, orders, notifications, DLQ, users. Port 3001 open in nftables + AWS SG (sg-02beaa288b8323edf) from 10.0.1.192.
