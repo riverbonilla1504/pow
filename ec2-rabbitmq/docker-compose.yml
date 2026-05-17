@@ -1,0 +1,29 @@
+# RabbitMQ para ec2-rabbitmq (NO desplegado en producción — ver README.md)
+# Uso: cp .env.example .env && docker compose up -d
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: ecommerce-rabbitmq
+    hostname: rabbitmq
+    restart: unless-stopped
+    ports:
+      # Misma superficie que rabbitmq-server nativo; el aislamiento lo hace nftables.conf
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-ecommerce}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?set RABBITMQ_PASSWORD in .env}
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+volumes:
+  rabbitmq_data:
