@@ -1,12 +1,18 @@
 module.exports = {
-  apps: [{
-    name: 'admin-dashboard',
-    script: 'node_modules/next/dist/bin/next',
-    args: 'start -p 3001',
-    cwd: '/home/ubuntu/pow/ec2-dashboard',
-    env: {
-      NODE_ENV: 'production',
-      NEXT_PUBLIC_API_URL: 'https://api.freck.lat',
+  apps: [
+    {
+      name: 'dashboard',
+      script: 'node_modules/.bin/next',
+      args: 'start',
+      cwd: '/home/ubuntu/pow/ec2-dashboard',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 3001,
+      },
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '400M',
     },
-  }],
+  ],
 };
