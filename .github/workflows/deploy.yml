@@ -1,0 +1,145 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  # ─── detectar qué cambió ────────────────────────────────────────────────────
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      nginx:     ${{ steps.f.outputs.nginx }}
+      api:       ${{ steps.f.outputs.api }}
+      dashboard: ${{ steps.f.outputs.dashboard }}
+      workers:   ${{ steps.f.outputs.workers }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - uses: dorny/paths-filter@v3
+        id: f
+        with:
+          filters: |
+            nginx:
+              - 'ec2-nginx/**'
+            api:
+              - 'ec2-api-orders/**'
+            dashboard:
+              - 'ec2-dashboard/**'
+            workers:
+              - 'ec2-workers/**'
+
+  # ─── nginx (bastion) ────────────────────────────────────────────────────────
+  deploy-nginx:
+    needs: changes
+    if: needs.changes.outputs.nginx == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -t rsa,ed25519 -H 52.21.124.113 >> ~/.ssh/known_hosts
+
+      - name: Deploy nginx
+        run: |
+          ssh -i ~/.ssh/id_rsa ubuntu@52.21.124.113 bash << 'ENDSSH'
+          set -e
+          cd /home/ubuntu/pow
+          git pull origin main
+          sudo cp ec2-nginx/sites-available/ecommerce /etc/nginx/sites-available/ecommerce
+          sudo nginx -t
+          sudo systemctl reload nginx
+          echo "✓ nginx desplegado"
+          ENDSSH
+
+  # ─── API de órdenes (10.0.2.160) ────────────────────────────────────────────
+  deploy-api:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -t rsa,ed25519 -H 52.21.124.113 >> ~/.ssh/known_hosts
+
+      - name: Deploy API
+        run: |
+          ssh -i ~/.ssh/id_rsa \
+            -o "ProxyCommand=ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -W %h:%p ubuntu@52.21.124.113" \
+            -o StrictHostKeyChecking=no \
+            ubuntu@10.0.2.160 bash << 'ENDSSH'
+          set -e
+          cd /home/ubuntu/pow
+          git pull origin main
+          cd ec2-api-orders
+          npm install --omit=dev
+          pm2 restart orders-api
+          pm2 save
+          echo "✓ orders-api desplegado"
+          ENDSSH
+
+  # ─── Next.js dashboard (10.0.2.160:3001) ────────────────────────────────────
+  deploy-dashboard:
+    needs: changes
+    if: needs.changes.outputs.dashboard == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -t rsa,ed25519 -H 52.21.124.113 >> ~/.ssh/known_hosts
+
+      - name: Build y deploy dashboard
+        run: |
+          ssh -i ~/.ssh/id_rsa \
+            -o "ProxyCommand=ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -W %h:%p ubuntu@52.21.124.113" \
+            -o StrictHostKeyChecking=no \
+            -o ServerAliveInterval=30 \
+            ubuntu@10.0.2.160 bash << 'ENDSSH'
+          set -e
+          cd /home/ubuntu/pow
+          git pull origin main
+          cd ec2-dashboard
+          npm install
+          npm run build
+          pm2 restart dashboard
+          pm2 save
+          echo "✓ dashboard desplegado"
+          ENDSSH
+
+  # ─── Workers de notificación (10.0.2.250) ───────────────────────────────────
+  deploy-workers:
+    needs: changes
+    if: needs.changes.outputs.workers == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -t rsa,ed25519 -H 52.21.124.113 >> ~/.ssh/known_hosts
+
+      - name: Deploy workers
+        run: |
+          ssh -i ~/.ssh/id_rsa \
+            -o "ProxyCommand=ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -W %h:%p ubuntu@52.21.124.113" \
+            -o StrictHostKeyChecking=no \
+            ubuntu@10.0.2.250 bash << 'ENDSSH'
+          set -e
+          cd /home/ubuntu/pow
+          git pull origin main
+          cd ec2-workers
+          npm install --omit=dev
+          pm2 restart email-worker sms-worker
+          pm2 save
+          echo "✓ workers desplegados"
+          ENDSSH
