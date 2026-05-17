@@ -117,6 +117,24 @@ router.post('/login', loginLimiter, async (req, res) => {
     }
 });
 
+// GET /auth/me
+router.get('/me', authenticate, async (req, res) => {
+    try {
+        const result = await pool.query(
+            'SELECT id, email, role, totp_enabled FROM users WHERE id = $1',
+            [req.user.sub]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        const user = result.rows[0];
+        res.json({ id: user.id, email: user.email, role: user.role, totp_enabled: user.totp_enabled });
+    } catch (err) {
+        console.error('Auth me error:', err.message);
+        res.status(500).json({ error: 'Failed to fetch user info' });
+    }
+});
+
 // POST /auth/2fa/verify
 router.post('/2fa/verify', async (req, res) => {
     try {

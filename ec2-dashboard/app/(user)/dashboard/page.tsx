@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Plus, LogOut, Package, Clock, CheckCircle, Truck, RotateCcw, X, Loader2, AlertCircle, Trash2 } from 'lucide-react';
+import { ShoppingBag, Plus, LogOut, Package, Clock, CheckCircle, Truck, RotateCcw, X, Loader2, AlertCircle, Trash2, Shield } from 'lucide-react';
 import { myOrders, createOrder, hasToken, clearToken } from '@/lib/api';
 import StatusBadge from '@/components/shared/StatusBadge';
 
@@ -137,6 +137,7 @@ export default function DashboardPage() {
             style={{ background: 'var(--green)' }}>
             <Plus size={14} /> Nueva Orden
           </motion.button>
+          <Link href="/settings/security" className="p-2 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-colors"><Shield size={15} /></Link>
           <button onClick={logout} className="p-2 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-colors"><LogOut size={15} /></button>
         </div>
       </nav>

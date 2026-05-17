@@ -13,6 +13,10 @@ export function proxy(request: NextRequest) {
 
   const isAdmin = host.startsWith('admin.');
 
+  if (!isAdmin && pathname.startsWith('/admin')) {
+    return NextResponse.redirect(new URL('https://admin.freck.lat/'));
+  }
+
   if (isAdmin && !pathname.startsWith('/admin')) {
     const target = pathname === '/' ? '/admin' : `/admin${pathname}`;
     return NextResponse.rewrite(new URL(target, request.url));

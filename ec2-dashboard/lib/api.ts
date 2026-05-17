@@ -7,7 +7,8 @@ function getToken(): string {
 }
 
 export function setToken(token: string) {
-  document.cookie = `token=${encodeURIComponent(token)};path=/;max-age=3600;SameSite=Lax`;
+  const secure = window.location.protocol === 'https:' ? ';Secure' : '';
+  document.cookie = `token=${encodeURIComponent(token)};path=/;max-age=3600;SameSite=Lax${secure}`;
 }
 
 export function clearToken() {
@@ -78,3 +79,19 @@ export const adminUsers = (page = 1, limit = 20) =>
   req<any>(`/admin/users?page=${page}&limit=${limit}`);
 export const updateRole = (id: string, role: string) =>
   req<any>(`/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) });
+
+export function isAdminHost(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.location.hostname.startsWith('admin.');
+}
+
+export function loginUrl(): string {
+  return '/login';
+}
+
+export function postLoginPath(role: string): string {
+  if (isAdminHost()) return role === 'admin' ? '/' : '/login';
+  return '/dashboard';
+}
+
+export const getMe = () => req<any>('/auth/me');

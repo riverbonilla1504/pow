@@ -17,7 +17,7 @@ export default function AdminSidebar() {
   const path = usePathname();
   const router = useRouter();
 
-  function logout() { clearToken(); window.location.href = 'https://freck.lat/login'; }
+  function logout() { clearToken(); window.location.href = '/login'; }
 
   return (
     <aside className="fixed left-0 top-0 h-full w-56 flex flex-col z-30" style={{ background: '#0a0a14', borderRight: '1px solid var(--border)' }}>
