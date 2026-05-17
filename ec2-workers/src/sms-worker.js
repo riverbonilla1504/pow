@@ -1,17 +1,12 @@
 require('dotenv').config();
 const amqp = require('amqplib');
-const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
+const twilio = require('twilio');
 
 const QUEUE = 'q.notify.sms';
 const MAX_RETRIES = 3;
 
-const sns = new SNSClient({
-    region: process.env.AWS_REGION || 'us-east-1',
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-    }
-});
+const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+const FROM_NUMBER = process.env.TWILIO_PHONE_NUMBER;
 
 const SMS_TEMPLATES = {
     high_value_order: (data) =>
@@ -26,24 +21,15 @@ async function sendSMS(event) {
     const template = SMS_TEMPLATES[event.type];
     if (!template) throw new Error(`Unknown SMS template: ${event.type}`);
 
-    const message = template(event);
+    const body = template(event);
 
-    await sns.send(new PublishCommand({
-        Message: message,
-        PhoneNumber: event.phone,
-        MessageAttributes: {
-            'AWS.SNS.SMS.SMSType': {
-                DataType: 'String',
-                StringValue: event.type === 'totp_code' ? 'Transactional' : 'Promotional'
-            },
-            'AWS.SNS.SMS.SenderID': {
-                DataType: 'String',
-                StringValue: 'ECommerce'
-            }
-        }
-    }));
+    const message = await client.messages.create({
+        body,
+        from: FROM_NUMBER,
+        to: event.phone
+    });
 
-    console.log(`SMS sent to ${event.phone} [${event.type}]`);
+    console.log(`SMS sent to ${event.phone} [${event.type}] SID: ${message.sid}`);
 }
 
 async function start() {

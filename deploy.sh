@@ -6,7 +6,7 @@
 set -e
 
 COMPONENT=${1:-$(basename $(pwd))}
-REPO_URL="git@github.com:YOUR_USER/ecommerce-notifications.git"
+REPO_URL="git@github.com:riverbonilla1504/pow.git"
 
 echo "=== Deploying $COMPONENT ==="
 

@@ -1,7 +1,7 @@
 {
   "name": "notification-workers",
   "version": "1.0.0",
-  "description": "Email (SES) and SMS (SNS) notification consumers for RabbitMQ",
+  "description": "Email (SES) and SMS (Twilio) notification consumers for RabbitMQ",
   "scripts": {
     "start:email": "node src/email-worker.js",
     "start:sms": "node src/sms-worker.js",
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.621.0",
-    "@aws-sdk/client-sns": "^3.621.0",
+    "twilio": "^5.0.0",
     "amqplib": "^0.10.4",
     "dotenv": "^16.4.5"
   }
