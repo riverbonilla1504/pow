@@ -1,6 +1,7 @@
 require('dotenv').config();
 const amqp = require('amqplib');
 const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
+const { logNotification } = require('./db');
 
 const QUEUE = 'q.notify.email';
 const MAX_RETRIES = 3;
@@ -58,6 +59,7 @@ async function sendEmail(event) {
     }));
 
     console.log(`Email sent to ${event.email} [${event.type}]`);
+    await logNotification(event.orderId, 'email', 'sent', event.email, event.type);
 }
 
 async function start() {
@@ -78,6 +80,7 @@ async function start() {
             channel.ack(msg);
         } catch (err) {
             console.error(`Email failed [attempt ${retryCount + 1}/${MAX_RETRIES}]:`, err.message);
+            await logNotification(event.orderId, 'email', 'failed', event.email || 'unknown', event.type, err.message);
 
             if (retryCount < MAX_RETRIES - 1) {
                 channel.publish('order.events', msg.fields.routingKey, msg.content, {

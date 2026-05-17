@@ -1,6 +1,7 @@
 require('dotenv').config();
 const amqp = require('amqplib');
 const twilio = require('twilio');
+const { logNotification } = require('./db');
 
 const QUEUE = 'q.notify.sms';
 const MAX_RETRIES = 3;
@@ -30,6 +31,7 @@ async function sendSMS(event) {
     });
 
     console.log(`SMS sent to ${event.phone} [${event.type}] SID: ${message.sid}`);
+    await logNotification(event.orderId, 'sms', 'sent', event.phone, event.type);
 }
 
 async function start() {
@@ -50,6 +52,7 @@ async function start() {
             channel.ack(msg);
         } catch (err) {
             console.error(`SMS failed [attempt ${retryCount + 1}/${MAX_RETRIES}]:`, err.message);
+            await logNotification(event.orderId, 'sms', 'failed', event.phone || 'unknown', event.type, err.message);
 
             if (retryCount < MAX_RETRIES - 1) {
                 channel.publish('order.events', msg.fields.routingKey, msg.content, {

@@ -5,19 +5,26 @@ const { getChannel } = require('../services/rabbitmq');
 
 const router = express.Router();
 
-// GET /admin/dashboard - Admin panel data
+// GET /admin/dashboard
 router.get('/dashboard', authenticate, authorize('admin'), require2FA, async (req, res) => {
     try {
-        const [ordersCount, usersCount, recentOrders] = await Promise.all([
+        const [ordersCount, usersCount, recentOrders, notifStats, revenueRow] = await Promise.all([
             pool.query('SELECT status, COUNT(*) as count FROM orders GROUP BY status'),
             pool.query('SELECT role, COUNT(*) as count FROM users GROUP BY role'),
-            pool.query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 10')
+            pool.query(`SELECT o.*, u.email as user_email FROM orders o
+                        JOIN users u ON o.user_id = u.id
+                        ORDER BY o.created_at DESC LIMIT 10`),
+            pool.query(`SELECT type, status, COUNT(*) as count FROM notification_logs
+                        GROUP BY type, status`),
+            pool.query('SELECT COALESCE(SUM(total), 0) as total FROM orders')
         ]);
 
         res.json({
             ordersByStatus: ordersCount.rows,
             usersByRole: usersCount.rows,
-            recentOrders: recentOrders.rows
+            recentOrders: recentOrders.rows,
+            notificationStats: notifStats.rows,
+            totalRevenue: parseFloat(revenueRow.rows[0].total)
         });
     } catch (err) {
         console.error('Dashboard error:', err.message);
@@ -25,7 +32,70 @@ router.get('/dashboard', authenticate, authorize('admin'), require2FA, async (re
     }
 });
 
-// GET /admin/dlq - View dead letter queue
+// GET /admin/orders
+router.get('/orders', authenticate, authorize('admin'), require2FA, async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const offset = (page - 1) * limit;
+        const status = req.query.status;
+
+        const where = status ? 'WHERE o.status = $3' : '';
+        const params = status ? [limit, offset, status] : [limit, offset];
+
+        const [orders, total] = await Promise.all([
+            pool.query(
+                `SELECT o.*, u.email as user_email, u.phone as user_phone
+                 FROM orders o JOIN users u ON o.user_id = u.id
+                 ${where} ORDER BY o.created_at DESC LIMIT $1 OFFSET $2`,
+                params
+            ),
+            pool.query(
+                `SELECT COUNT(*) as count FROM orders o ${where}`,
+                status ? [status] : []
+            )
+        ]);
+
+        res.json({
+            orders: orders.rows,
+            total: parseInt(total.rows[0].count),
+            page,
+            pages: Math.ceil(parseInt(total.rows[0].count) / limit)
+        });
+    } catch (err) {
+        console.error('Orders list error:', err.message);
+        res.status(500).json({ error: 'Failed to list orders' });
+    }
+});
+
+// GET /admin/notifications
+router.get('/notifications', authenticate, authorize('admin'), require2FA, async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const offset = (page - 1) * limit;
+
+        const [logs, total] = await Promise.all([
+            pool.query(
+                `SELECT * FROM notification_logs ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+                [limit, offset]
+            ),
+            pool.query('SELECT COUNT(*) as count FROM notification_logs')
+        ]);
+
+        res.json({
+            notifications: logs.rows,
+            total: parseInt(total.rows[0].count),
+            page,
+            pages: Math.ceil(parseInt(total.rows[0].count) / limit)
+        });
+    } catch (err) {
+        console.error('Notifications error:', err.message);
+        res.status(500).json({ error: 'Failed to list notifications' });
+    }
+});
+
+// GET /admin/dlq
 router.get('/dlq', authenticate, authorize('admin'), require2FA, async (req, res) => {
     try {
         const channel = getChannel();
@@ -34,11 +104,9 @@ router.get('/dlq', authenticate, authorize('admin'), require2FA, async (req, res
         }
 
         const queueInfo = await channel.checkQueue('q.dead.letter');
-
         const messages = [];
-        const maxMessages = 10;
 
-        for (let i = 0; i < Math.min(queueInfo.messageCount, maxMessages); i++) {
+        for (let i = 0; i < Math.min(queueInfo.messageCount, 10); i++) {
             const msg = await channel.get('q.dead.letter', { noAck: false });
             if (msg) {
                 messages.push({
@@ -50,17 +118,14 @@ router.get('/dlq', authenticate, authorize('admin'), require2FA, async (req, res
             }
         }
 
-        res.json({
-            queueSize: queueInfo.messageCount,
-            messages
-        });
+        res.json({ queueSize: queueInfo.messageCount, messages });
     } catch (err) {
         console.error('DLQ error:', err.message);
         res.status(500).json({ error: 'Failed to read DLQ' });
     }
 });
 
-// GET /admin/users - Manage users
+// GET /admin/users
 router.get('/users', authenticate, authorize('admin'), require2FA, async (req, res) => {
     try {
         const result = await pool.query(
@@ -73,7 +138,7 @@ router.get('/users', authenticate, authorize('admin'), require2FA, async (req, r
     }
 });
 
-// PATCH /admin/users/:id/role - Change user role
+// PATCH /admin/users/:id/role
 router.patch('/users/:id/role', authenticate, authorize('admin'), require2FA, async (req, res) => {
     try {
         const { role } = req.body;
