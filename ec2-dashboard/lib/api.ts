@@ -30,3 +30,4 @@ export const isAdminHost = api.isAdminHost;
 export const loginUrl = api.loginUrl;
 export const postLoginPath = api.postLoginPath;
 export const adminHomePath = api.adminHomePath;
+export const isAdminRole = api.isAdminRole;

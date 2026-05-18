@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Shield, Loader2, AlertCircle, Mail, Lock, Key } from 'lucide-react';
-import { setToken, recover2fa, adminHomePath } from '@/lib/api';
+import { setToken, recover2fa, adminHomePath, isAdminRole } from '@/lib/api';
 
 interface RecoverFormProps {
   variant?: 'user' | 'admin';
@@ -28,7 +28,7 @@ export default function RecoverForm({ variant = 'user' }: RecoverFormProps) {
 
       if (isAdmin) {
         const payload = JSON.parse(atob(data.token.split('.')[1]));
-        if (payload.role !== 'admin') {
+        if (!isAdminRole(payload.role)) {
           setError('Solo cuentas administrador pueden acceder a este panel');
           return;
         }

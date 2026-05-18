@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, Shield, AlertCircle, Loader2 } from 'lucide-react';
-import { login, verify2fa, setToken, adminHomePath } from '@/lib/api';
+import { login, verify2fa, setToken, adminHomePath, isAdminRole } from '@/lib/api';
 import OtpInput from '@/components/auth/OtpInput';
 import AuthShell from '@/components/layout/AuthShell';
 
@@ -25,12 +25,12 @@ export default function AdminLoginPage() {
     setError('');
     try {
       const res = await login(email, password);
-      if (res.tempToken) {
+      if (res.requires2FA || res.tempToken) {
         setTempToken(res.tempToken);
         setStep('2fa');
       } else {
         const payload = JSON.parse(atob(res.token.split('.')[1]));
-        if (payload.role !== 'admin') {
+        if (!isAdminRole(payload.role)) {
           setError('Solo cuentas administrador pueden acceder a este panel');
           return;
         }
@@ -51,7 +51,7 @@ export default function AdminLoginPage() {
     try {
       const res = await verify2fa(code, tempToken);
       const payload = JSON.parse(atob(res.token.split('.')[1]));
-      if (payload.role !== 'admin') {
+      if (!isAdminRole(payload.role)) {
         setError('Solo cuentas administrador pueden acceder a este panel');
         return;
       }

@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { hasToken, getTokenPayload, clearToken } from '@/lib/api';
+import { hasToken, getTokenPayload, clearToken, isAdminRole } from '@/lib/api';
 import AdminSidebar from '@/components/admin/Sidebar';
 import TwoFactorEnroll from '@/components/auth/TwoFactorEnroll';
 
@@ -17,7 +17,7 @@ export default function AdminProtectedLayout({ children }: { children: React.Rea
       window.location.href = '/login';
       return;
     }
-    if (payload.role !== 'admin') {
+    if (!isAdminRole(payload.role)) {
       setState('wrong-role');
       return;
     }

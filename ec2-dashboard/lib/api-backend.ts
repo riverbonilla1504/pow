@@ -1,14 +1,4 @@
-function resolveApiBase(): string {
-  const configured = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
-  if (configured) return configured;
-
-  // Mismo origen → Next reescribe /api/backend → API real (sin CORS en dev)
-  if (typeof window !== 'undefined') return '/api/backend';
-
-  return (process.env.API_PROXY_TARGET || 'https://api.freck.lat').replace(/\/$/, '');
-}
-
-const API = resolveApiBase();
+import { getApiBase } from './api-config';
 
 function getToken(): string {
   if (typeof document === 'undefined') return '';
@@ -31,7 +21,7 @@ export function hasToken(): boolean {
 
 async function req<T>(path: string, opts: RequestInit = {}, token?: string): Promise<T> {
   const t = token ?? getToken();
-  const url = `${API}${path}`;
+  const url = `${getApiBase()}${path}`;
 
   let res: Response;
   try {
@@ -78,7 +68,7 @@ export const recover2fa = (email: string, password: string, backupCode: string) 
     body: JSON.stringify({ email, password, backupCode }),
   });
 
-export function getTokenPayload(): any {
+export function getTokenPayload(): Record<string, unknown> | null {
   const t = getToken();
   if (!t) return null;
   try {
@@ -90,7 +80,7 @@ export function getTokenPayload(): any {
 }
 
 export const myOrders = () => req<any>('/orders');
-export const createOrder = (items: any[], total: number) =>
+export const createOrder = (items: unknown[], total: number) =>
   req<any>('/orders', { method: 'POST', body: JSON.stringify({ items, total }) });
 
 export const adminDashboard = () => req<any>('/admin/dashboard');
@@ -116,7 +106,7 @@ export function isAdminHost(): boolean {
 }
 
 export function loginUrl(): string {
-  return '/login';
+  return isAdminHost() ? '/login' : '/login';
 }
 
 export function postLoginPath(role: string): string {
@@ -126,4 +116,9 @@ export function postLoginPath(role: string): string {
 
 export function adminHomePath(): string {
   return isAdminHost() ? '/' : '/admin';
+}
+
+/** Solo rol `admin` puede usar el panel en admin.freck.lat */
+export function isAdminRole(role: unknown): boolean {
+  return role === 'admin';
 }

@@ -25,7 +25,7 @@ export default function LoginPage() {
     setError('');
     try {
       const res = await login(email, password);
-      if (res.tempToken) {
+      if (res.requires2FA || res.tempToken) {
         setTempToken(res.tempToken);
         setStep('2fa');
       } else {

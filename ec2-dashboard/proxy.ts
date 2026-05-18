@@ -8,6 +8,7 @@ export function proxy(request: NextRequest) {
   const isStatic =
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
+    pathname.startsWith('/api/backend') ||
     pathname.includes('.');
   if (isStatic) return NextResponse.next();
 

@@ -357,3 +357,7 @@ export function postLoginPath(role: string): string {
 export function adminHomePath(): string {
   return isAdminHost() ? '/' : '/admin';
 }
+
+export function isAdminRole(role: unknown): boolean {
+  return role === 'admin';
+}
