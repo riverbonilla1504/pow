@@ -37,110 +37,132 @@ export default function DLQPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* Page header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white">Dead Letter Queue</h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <h1 className="admin-page-title">Dead Letter Queue</h1>
+          <p className="admin-page-subtitle">
             {loading ? '…' : messages.length} mensaje{messages.length !== 1 ? 's' : ''} sin procesar
           </p>
         </div>
-        <button onClick={load} className="p-2 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-colors">
+        <button onClick={load} className="admin-icon-btn">
           <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
         </button>
       </motion.div>
 
       {/* Warning banner */}
       {!loading && messages.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        <motion.div
+          initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm"
-          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }}>
+          style={{ background: 'color-mix(in srgb, #ef4444 8%, transparent)', border: '1px solid color-mix(in srgb, #ef4444 22%, transparent)', color: '#f87171' }}
+        >
           <AlertTriangle size={15} />
           <span>Estos mensajes fallaron 3 reintentos y requieren atención manual.</span>
         </motion.div>
       )}
 
+      {/* Content */}
       {loading ? (
         <div className="space-y-3">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="glass rounded-2xl h-16 skeleton" />
+            <div key={i} className="dashboard-panel glass h-16 skeleton" />
           ))}
         </div>
       ) : messages.length === 0 ? (
-        <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
-          className="glass rounded-2xl flex flex-col items-center py-20 gap-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
+          className="dashboard-panel glass flex flex-col items-center py-20 gap-4"
+        >
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center callout-green">
             <AlertTriangle size={24} style={{ color: 'var(--green)' }} />
           </div>
-          <p className="text-slate-300 font-semibold">DLQ vacío</p>
-          <p className="text-slate-600 text-sm">Todos los mensajes procesados correctamente.</p>
+          <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>DLQ vacío</p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Todos los mensajes procesados correctamente.</p>
         </motion.div>
       ) : (
         <div className="space-y-3">
           <AnimatePresence>
             {messages.map((msg: any, i: number) => {
-              const open = expanded.has(i);
-              const payload = parsePayload(msg);
+              const open       = expanded.has(i);
+              const payload    = parsePayload(msg);
               const routingKey = msg.fields?.routingKey || msg.routingKey || msg.routing_key || '—';
-              const deaths = msg.properties?.headers?.['x-death']?.[0]?.count ?? '?';
-              const ts = msg.properties?.timestamp ? new Date(msg.properties.timestamp * 1000) : null;
+              const deaths     = msg.properties?.headers?.['x-death']?.[0]?.count ?? '?';
+              const ts         = msg.properties?.timestamp ? new Date(msg.properties.timestamp * 1000) : null;
 
               return (
-                <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-                  className="glass rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(239,68,68,0.15)' }}>
-                  {/* Header */}
-                  <button onClick={() => toggleExpand(i)} className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/2 transition-colors">
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+                  className="dashboard-panel glass overflow-hidden"
+                  style={{ borderColor: 'color-mix(in srgb, #ef4444 18%, var(--border))' }}
+                >
+                  {/* Header row */}
+                  <button
+                    onClick={() => toggleExpand(i)}
+                    className="w-full flex items-center justify-between px-5 py-4 transition-colors"
+                    style={{ background: 'transparent' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-muted)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
                     <div className="flex items-center gap-4 text-left">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ background: 'rgba(239,68,68,0.1)' }}>
+                      <div
+                        className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: 'color-mix(in srgb, #ef4444 10%, transparent)' }}
+                      >
                         <AlertTriangle size={14} style={{ color: '#ef4444' }} />
                       </div>
                       <div>
-                        <p className="text-sm font-mono text-white">{routingKey}</p>
+                        <p className="text-sm font-mono" style={{ color: 'var(--text-primary)' }}>{routingKey}</p>
                         <div className="flex items-center gap-3 mt-0.5">
-                          <span className="text-xs text-slate-600">
+                          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                             {ts ? ts.toLocaleDateString('es-CO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}
                           </span>
-                          <span className="text-xs px-2 py-0.5 rounded-full"
-                            style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171' }}>
+                          <span
+                            className="text-xs px-2 py-0.5 rounded-full"
+                            style={{ background: 'color-mix(in srgb, #ef4444 15%, transparent)', color: '#f87171' }}
+                          >
                             {deaths}x reintento{deaths !== 1 ? 's' : ''}
                           </span>
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {open ? <ChevronUp size={15} className="text-slate-500" /> : <ChevronDown size={15} className="text-slate-500" />}
+                      {open
+                        ? <ChevronUp   size={15} style={{ color: 'var(--text-muted)' }} />
+                        : <ChevronDown size={15} style={{ color: 'var(--text-muted)' }} />
+                      }
                     </div>
                   </button>
 
-                  {/* Payload */}
+                  {/* Expanded payload */}
                   <AnimatePresence>
                     {open && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }} style={{ borderTop: '1px solid var(--border)' }}>
-                        <div className="px-5 py-4">
-                          <p className="text-xs text-slate-600 uppercase tracking-wider mb-2">Payload</p>
-                          <pre className="text-xs text-slate-300 overflow-x-auto p-3 rounded-xl"
-                            style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border)', maxHeight: '300px', overflowY: 'auto' }}>
-                            {payload}
-                          </pre>
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}
+                        style={{ borderTop: '1px solid var(--border)' }}
+                      >
+                        <div className="px-5 py-4 space-y-4">
+                          <div>
+                            <p className="admin-filter-label mb-2">Payload</p>
+                            <pre className="admin-code-pre">{payload}</pre>
+                          </div>
 
                           {msg.properties?.headers && (
-                            <>
-                              <p className="text-xs text-slate-600 uppercase tracking-wider mb-2 mt-4">Headers</p>
-                              <pre className="text-xs text-slate-500 overflow-x-auto p-3 rounded-xl"
-                                style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border)', maxHeight: '150px', overflowY: 'auto' }}>
+                            <div>
+                              <p className="admin-filter-label mb-2">Headers</p>
+                              <pre className="admin-code-pre admin-code-pre--dim">
                                 {JSON.stringify(msg.properties.headers, null, 2)}
                               </pre>
-                            </>
+                            </div>
                           )}
 
-                          <div className="flex items-center gap-2 mt-4">
-                            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white transition-colors"
-                              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)' }}>
+                          <div className="flex items-center gap-2">
+                            <button className="admin-action-btn">
                               <RotateCcw size={12} /> Reintentar
                             </button>
-                            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-red-400 hover:text-red-300 transition-colors"
-                              style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                            <button className="admin-action-btn admin-action-btn--danger">
                               <Trash2 size={12} /> Descartar
                             </button>
                           </div>

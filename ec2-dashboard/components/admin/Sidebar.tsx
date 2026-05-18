@@ -21,13 +21,13 @@ export default function AdminSidebar() {
 
   return (
     <aside className="fixed left-0 top-0 h-full w-56 flex flex-col z-30 sidebar-shell">
-      <div className="flex items-center gap-2.5 px-4 py-5 border-b border-divider">
+      <div className="flex items-center gap-2.5 px-4 py-5 border-b" style={{ borderColor: 'var(--border)' }}>
         <div className="logo-mark w-7 h-7 rounded-lg">
           <Zap size={14} />
         </div>
         <div>
-          <p className="text-xs font-bold theme-brand-name">admin.freck.lat</p>
-          <p className="text-[10px] text-slate-600">Panel de Control</p>
+          <p className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>admin.freck.lat</p>
+          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Panel de Control</p>
         </div>
       </div>
 
@@ -49,15 +49,16 @@ export default function AdminSidebar() {
         })}
       </nav>
 
-      <div className="px-2 py-3 border-t border-divider space-y-2">
+      <div className="px-2 py-3 border-t space-y-2" style={{ borderColor: 'var(--border)' }}>
         <div className="flex items-center justify-between px-2">
-          <span className="text-[10px] uppercase tracking-wider text-slate-500">Tema</span>
+          <span className="admin-filter-label">Tema</span>
           <ThemeToggle size="sm" />
         </div>
         <button
           type="button"
           onClick={logout}
-          className="sidebar-item w-full text-slate-600 hover:text-red-400 hover:bg-red-400/5"
+          className="sidebar-item w-full"
+          style={{ color: 'var(--text-muted)' }}
         >
           <LogOut size={14} />
           Cerrar Sesión

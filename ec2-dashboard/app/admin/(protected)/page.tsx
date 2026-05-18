@@ -8,18 +8,23 @@ import StatusBadge from '@/components/shared/StatusBadge';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import { getChartTheme, ORDER_STATUS_COLORS } from '@/lib/chart-theme';
 
-function Card({ title, value, icon: Icon, color, delay = 0 }: any) {
+function StatCard({ title, value, icon: Icon, color, delay = 0 }: any) {
   return (
-    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}
-      whileHover={{ y: -3 }} className="card-glass rounded-2xl p-5" style={{ border: `1px solid ${color}25` }}>
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-[11px] text-slate-500 uppercase tracking-widest mb-1">{title}</p>
-          <p className="text-2xl font-black text-white">{value}</p>
-        </div>
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${color}18` }}>
-          <Icon size={16} style={{ color }} />
-        </div>
+    <motion.div
+      initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}
+      whileHover={{ y: -3 }}
+      className="dashboard-stat glass"
+      style={{ borderColor: `color-mix(in srgb, ${color} 22%, var(--border))` }}
+    >
+      <div
+        className="dashboard-stat__icon"
+        style={{ background: `color-mix(in srgb, ${color} 14%, transparent)`, color, border: `1px solid color-mix(in srgb, ${color} 28%, transparent)` }}
+      >
+        <Icon size={16} />
+      </div>
+      <div>
+        <p className="dashboard-stat__label uppercase tracking-widest">{title}</p>
+        <p className="dashboard-stat__value" style={{ color, fontSize: '1.5rem' }}>{value}</p>
       </div>
     </motion.div>
   );
@@ -28,7 +33,7 @@ function Card({ title, value, icon: Icon, color, delay = 0 }: any) {
 export default function AdminDashboard() {
   const { theme } = useTheme();
   const chart = getChartTheme(theme);
-  const [data, setData] = useState<any>(null);
+  const [data, setData]     = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,37 +41,44 @@ export default function AdminDashboard() {
   }, []);
 
   const totalOrders = data?.ordersByStatus?.reduce((a: number, r: any) => a + parseInt(r.count), 0) || 0;
-  const totalUsers = data?.usersByRole?.reduce((a: number, r: any) => a + parseInt(r.count), 0) || 0;
-  const emailSent = parseInt(data?.notificationStats?.find((n: any) => n.type === 'email' && n.status === 'sent')?.count || 0);
-  const smsSent = parseInt(data?.notificationStats?.find((n: any) => n.type === 'sms' && n.status === 'sent')?.count || 0);
+  const totalUsers  = data?.usersByRole?.reduce((a: number, r: any) => a + parseInt(r.count), 0) || 0;
+  const emailSent   = parseInt(data?.notificationStats?.find((n: any) => n.type === 'email' && n.status === 'sent')?.count || 0);
+  const smsSent     = parseInt(data?.notificationStats?.find((n: any) => n.type === 'sms'   && n.status === 'sent')?.count || 0);
 
   const orderChartData = data?.ordersByStatus?.map((r: any) => ({ name: r.status, total: parseInt(r.count) })) || [];
-  const notifData = [{ name: 'Email', value: emailSent }, { name: 'SMS', value: smsSent }];
+  const notifData      = [{ name: 'Email', value: emailSent }, { name: 'SMS', value: smsSent }];
 
   if (loading) return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">{[...Array(4)].map((_, i) => <div key={i} className="glass rounded-2xl h-24 skeleton" />)}</div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => <div key={i} className="glass rounded-2xl h-24 skeleton" />)}
+      </div>
     </div>
   );
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      {/* Page header */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="text-2xl font-black text-white">Dashboard</h1>
-        <p className="text-slate-500 text-sm mt-1">admin.freck.lat · ECommerce Notification System</p>
+        <h1 className="admin-page-title">Dashboard</h1>
+        <p className="admin-page-subtitle">admin.freck.lat · ECommerce Notification System</p>
       </motion.div>
 
+      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card title="Órdenes" value={totalOrders} icon={ShoppingCart} color={chart.brand} delay={0} />
-        <Card title="Revenue" value={`$${(data?.totalRevenue || 0).toFixed(0)}`} icon={DollarSign} color="#3b82f6" delay={0.06} />
-        <Card title="Usuarios" value={totalUsers} icon={Users} color="#8b5cf6" delay={0.12} />
-        <Card title="Notificaciones" value={emailSent + smsSent} icon={TrendingUp} color="#f59e0b" delay={0.18} />
+        <StatCard title="Órdenes"       value={totalOrders}                        icon={ShoppingCart}  color={chart.brand}  delay={0}    />
+        <StatCard title="Revenue"       value={`$${(data?.totalRevenue || 0).toFixed(0)}`} icon={DollarSign}    color="#3b82f6"     delay={0.06} />
+        <StatCard title="Usuarios"      value={totalUsers}                         icon={Users}         color="#8b5cf6"     delay={0.12} />
+        <StatCard title="Notificaciones" value={emailSent + smsSent}               icon={TrendingUp}    color="#f59e0b"     delay={0.18} />
       </div>
 
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-          className="glass rounded-2xl p-5">
-          <h2 className="text-sm font-semibold text-slate-300 mb-5">Órdenes por Estado</h2>
+        <motion.div
+          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+          className="dashboard-panel glass p-5"
+        >
+          <h2 className="admin-section-title mb-5">Órdenes por Estado</h2>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={orderChartData} barSize={28}>
               <XAxis dataKey="name" tick={{ fill: chart.tick, fontSize: 11 }} axisLine={false} tickLine={false} />
@@ -79,9 +91,11 @@ export default function AdminDashboard() {
           </ResponsiveContainer>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-          className="glass rounded-2xl p-5">
-          <h2 className="text-sm font-semibold text-slate-300 mb-5">Notificaciones Enviadas</h2>
+        <motion.div
+          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          className="dashboard-panel glass p-5"
+        >
+          <h2 className="admin-section-title mb-5">Notificaciones Enviadas</h2>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie data={notifData} cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={5} dataKey="value">
@@ -94,28 +108,40 @@ export default function AdminDashboard() {
         </motion.div>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-        className="glass rounded-2xl overflow-hidden">
+      {/* Recent orders */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+        className="dashboard-panel glass overflow-hidden"
+      >
         <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-          <h2 className="text-sm font-semibold text-slate-300">Últimas Órdenes</h2>
+          <h2 className="admin-section-title">Últimas Órdenes</h2>
         </div>
-        <table className="w-full text-sm">
-          <thead><tr className="text-[11px] text-slate-600 uppercase tracking-wider border-b border-divider">
-            {['ID', 'Usuario', 'Total', 'Estado', 'Fecha'].map(h => <th key={h} className="px-5 py-3 text-left">{h}</th>)}
-          </tr></thead>
-          <tbody>
-            {data?.recentOrders?.map((o: any, i: number) => (
-              <motion.tr key={o.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 + i * 0.03 }}
-                className="hover:bg-white/2 transition-colors border-t border-divider">
-                <td className="px-5 py-3 font-mono text-xs text-slate-500">{o.id.slice(0, 8)}…</td>
-                <td className="px-5 py-3 text-slate-300 text-xs">{o.user_email}</td>
-                <td className="px-5 py-3 text-xs font-semibold" style={{ color: 'var(--green)' }}>${parseFloat(o.total).toFixed(2)}</td>
-                <td className="px-5 py-3"><StatusBadge value={o.status} /></td>
-                <td className="px-5 py-3 text-slate-500 text-xs">{new Date(o.created_at).toLocaleDateString('es-CO')}</td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="admin-thead">
+              <tr>
+                {['ID', 'Usuario', 'Total', 'Estado', 'Fecha'].map(h => (
+                  <th key={h} className="admin-th">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {data?.recentOrders?.map((o: any, i: number) => (
+                <motion.tr
+                  key={o.id}
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 + i * 0.03 }}
+                  className="admin-row"
+                >
+                  <td className="admin-td admin-td--mono">{o.id.slice(0, 8)}…</td>
+                  <td className="admin-td">{o.user_email}</td>
+                  <td className="admin-td admin-td--accent">${parseFloat(o.total).toFixed(2)}</td>
+                  <td className="admin-td"><StatusBadge value={o.status} /></td>
+                  <td className="admin-td admin-td--muted">{new Date(o.created_at).toLocaleDateString('es-CO')}</td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </motion.div>
     </div>
   );
