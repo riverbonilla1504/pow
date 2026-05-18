@@ -1,3 +1,8 @@
+/**
+ * RootLayout — layout raíz de la aplicación Next.js.
+ * Configura fuentes (Poppins + IBM Plex Mono), ThemeProvider global,
+ * y ThemeScript para evitar flash de tema incorrecto.
+ */
 import type { Metadata } from "next";
 import { Poppins, IBM_Plex_Mono } from "next/font/google";
 import ThemeProvider from "@/components/theme/ThemeProvider";

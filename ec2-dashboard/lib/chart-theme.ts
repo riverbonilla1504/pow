@@ -1,9 +1,11 @@
+/**
+ * Tema de colores para gráficas Recharts.
+ * Define paletas para modo oscuro y claro, alineadas con los tokens CSS de globals.css.
+ * También exporta colores semánticos para estados de órdenes, notificaciones y roles.
+ */
 import type { Theme } from '@/lib/theme';
 
-/**
- * Colores para Recharts y visualizaciones.
- * Valores alineados con tokens en app/globals.css
- */
+/** Paleta de colores para gráficas en modo oscuro */
 export const CHART_DARK = {
   brand: '#42b883',
   brandLight: '#5cdb95',
@@ -22,6 +24,7 @@ export const CHART_DARK = {
   cursor: 'rgba(255, 255, 255, 0.03)',
 } as const;
 
+/** Paleta de colores para gráficas en modo claro */
 export const CHART_LIGHT = {
   brand: '#42b883',
   brandLight: '#5cdb95',
@@ -43,10 +46,12 @@ export const CHART_LIGHT = {
 /** @deprecated use getChartTheme(theme) */
 export const CHART = CHART_DARK;
 
+/** Retorna la paleta de colores apropiada según el tema activo */
 export function getChartTheme(theme: Theme = 'dark') {
   return theme === 'light' ? CHART_LIGHT : CHART_DARK;
 }
 
+/** Colores por estado de orden — usados en barras y badges */
 export const ORDER_STATUS_COLORS: Record<string, string> = {
   pending: '#eab308',
   paid: '#3b82f6',
@@ -55,17 +60,20 @@ export const ORDER_STATUS_COLORS: Record<string, string> = {
   returned: '#ef4444',
 };
 
+/** Colores por tipo de notificación (email vs SMS) */
 export const NOTIFICATION_TYPE_COLORS: Record<string, string> = {
   email: '#3b82f6',
   sms: '#8b5cf6',
 };
 
+/** Colores por estado de notificación */
 export const NOTIFICATION_STATUS_COLORS: Record<string, string> = {
   sent: '#22c55e',
   failed: '#ef4444',
   pending: '#eab308',
 };
 
+/** Colores por rol de usuario — usados en badges y avatars */
 export const ROLE_COLORS: Record<string, { color: string; bg: string }> = {
   admin: { color: CHART_DARK.brand, bg: 'var(--green-subtle)' },
   operador: { color: '#eab308', bg: 'rgba(234, 179, 8, 0.12)' },

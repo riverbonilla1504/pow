@@ -1,5 +1,7 @@
 'use client';
 
+/** TwoFactorCard — card que muestra el estado de 2FA (activo/inactivo) con enlace para configurar */
+
 import { motion } from 'framer-motion';
 import { Shield, ShieldCheck, KeyRound } from 'lucide-react';
 import Link from 'next/link';

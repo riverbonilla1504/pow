@@ -1,5 +1,7 @@
 'use client';
 
+/** SecurityTips — sección informativa con consejos de seguridad para la cuenta */
+
 import { motion } from 'framer-motion';
 import { Lock, Smartphone, MessageSquare } from 'lucide-react';
 

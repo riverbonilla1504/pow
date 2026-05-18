@@ -1,4 +1,7 @@
 'use client';
+
+/** PageHeader — componente reutilizable de encabezado con título, subtítulo y acciones */
+
 import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
 

@@ -1,4 +1,12 @@
 'use client';
+
+/**
+ * AdminDashboard — página principal del panel de administración.
+ * Muestra: stat cards (órdenes, revenue, usuarios, notificaciones),
+ * gráfica de barras (órdenes por estado), gráfica de pie (notificaciones),
+ * y tabla de las últimas 10 órdenes.
+ */
+
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Users, DollarSign, Mail, MessageSquare, TrendingUp } from 'lucide-react';
@@ -8,6 +16,7 @@ import StatusBadge from '@/components/shared/StatusBadge';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import { getChartTheme, ORDER_STATUS_COLORS } from '@/lib/chart-theme';
 
+/** Card individual de estadística con icono, valor y color temático */
 function StatCard({ title, value, icon: Icon, color, delay = 0 }: any) {
   return (
     <motion.div

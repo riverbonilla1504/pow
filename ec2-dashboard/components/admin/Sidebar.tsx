@@ -1,4 +1,11 @@
 'use client';
+
+/**
+ * AdminSidebar — barra lateral sticky del panel de administración.
+ * Muestra navegación (Dashboard, Órdenes, Notificaciones, DLQ, Usuarios),
+ * toggle de tema, y botón de logout. Usa posición sticky para scroll independiente.
+ */
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -6,6 +13,7 @@ import { LayoutDashboard, ShoppingCart, Bell, AlertTriangle, Users, LogOut, Zap 
 import { clearToken } from '@/lib/api';
 import ThemeToggle from '@/components/theme/ThemeToggle';
 
+/** Definición de las rutas de navegación del sidebar admin */
 const NAV = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/orders', label: 'Órdenes', icon: ShoppingCart },
@@ -20,7 +28,7 @@ export default function AdminSidebar() {
   function logout() { clearToken(); window.location.href = '/login'; }
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-56 flex flex-col z-30 sidebar-shell">
+    <aside className="sticky top-0 h-screen w-56 shrink-0 flex flex-col sidebar-shell overflow-y-auto">
       <div className="flex items-center gap-2.5 px-4 py-5 border-b" style={{ borderColor: 'var(--border)' }}>
         <div className="logo-mark w-7 h-7 rounded-lg">
           <Zap size={14} />

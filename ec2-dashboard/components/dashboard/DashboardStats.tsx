@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * DashboardStats — cards de estadísticas del dashboard de usuario.
+ * Muestra: total de órdenes, órdenes completadas, y gasto total.
+ */
+
 import { motion } from 'framer-motion';
 import { Package, CheckCircle2, Wallet } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';

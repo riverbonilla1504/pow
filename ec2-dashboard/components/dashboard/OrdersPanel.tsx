@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * OrdersPanel — tabla de órdenes del usuario con iconos de estado,
+ * animación de entrada escalonada, y estado vacío.
+ */
+
 import { motion } from 'framer-motion';
 import {
   Package,

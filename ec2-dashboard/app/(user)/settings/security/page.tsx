@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * SecurityPage — configuración de seguridad del usuario.
+ * Permite activar/ver estado de 2FA, mostrar enrollment TOTP,
+ * y gestionar la autenticación de dos factores.
+ */
+
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';

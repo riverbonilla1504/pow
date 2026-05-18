@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * ThemeProvider — contexto global para el tema (light/dark).
+ * Lee la preferencia desde localStorage, sincroniza con el sistema operativo,
+ * y proporciona toggleTheme / setTheme a toda la app via useTheme().
+ */
+
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
   applyTheme,
@@ -13,11 +19,12 @@ type ThemeContextValue = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
-  mounted: boolean;
+  mounted: boolean;          // false durante SSR para evitar flash de tema incorrecto
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+/** Provider que envuelve la app y gestiona el estado del tema */
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('dark');
   const [mounted, setMounted] = useState(false);

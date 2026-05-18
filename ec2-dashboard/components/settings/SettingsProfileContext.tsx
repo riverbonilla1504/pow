@@ -1,5 +1,7 @@
 'use client';
 
+/** Contexto de React para compartir el perfil del usuario entre las páginas de settings */
+
 import { createContext, useContext } from 'react';
 import type { UserProfile } from '@/components/settings/SettingsShell';
 

@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * LoginPage — formulario de login del usuario.
+ * Flujo: email/password → si tiene 2FA, muestra OTP input → genera JWT.
+ * Incluye enlace a registro y recuperación de cuenta.
+ */
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';

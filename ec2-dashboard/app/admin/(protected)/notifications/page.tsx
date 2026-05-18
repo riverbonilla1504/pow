@@ -1,9 +1,17 @@
 'use client';
+
+/**
+ * NotificationsPage — historial de notificaciones enviadas por el sistema.
+ * Muestra: tabla de logs con filtros por tipo (email/sms) y estado (sent/failed),
+ * detalle de destinatario, template usado, y paginación.
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, MessageSquare, RefreshCw, ChevronLeft, ChevronRight, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { adminNotifications } from '@/lib/api';
 
+/** Configuración visual por tipo de notificación */
 const TYPE_CONFIG: Record<string, { icon: any; color: string; label: string }> = {
   email: { icon: Mail,          color: '#3b82f6', label: 'Email' },
   sms:   { icon: MessageSquare, color: '#8b5cf6', label: 'SMS'   },

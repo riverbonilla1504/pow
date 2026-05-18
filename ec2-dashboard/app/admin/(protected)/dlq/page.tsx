@@ -1,4 +1,11 @@
 'use client';
+
+/**
+ * DLQPage — visor de la Dead Letter Queue de RabbitMQ.
+ * Muestra mensajes que fallaron 3 veces, con payload JSON expandible,
+ * información de routing key, exchange, y botones de retry/discard.
+ */
+
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, RefreshCw, ChevronDown, ChevronUp, RotateCcw, Trash2 } from 'lucide-react';

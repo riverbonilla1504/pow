@@ -1,10 +1,18 @@
 'use client';
+
+/**
+ * OrdersPage — administración de órdenes del sistema.
+ * Muestra: tabla de órdenes con búsqueda por email, filtro por estado,
+ * badges de estado semánticos, y paginación server-side.
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { adminOrders } from '@/lib/api';
 import StatusBadge from '@/components/shared/StatusBadge';
 
+/** Opciones de filtro por estado — 'all' muestra todas */
 const STATUSES = ['all', 'pending', 'paid', 'shipped', 'delivered', 'returned'];
 
 export default function OrdersPage() {

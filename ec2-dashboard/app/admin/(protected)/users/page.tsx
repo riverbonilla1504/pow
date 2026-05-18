@@ -1,9 +1,17 @@
 'use client';
+
+/**
+ * UsersPage — gestión de usuarios del sistema.
+ * Muestra: cards de resumen por rol, búsqueda por email, tabla de usuarios
+ * con dropdown para cambiar roles (cliente/operador/admin), y paginación.
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Shield, ShieldCheck, User, ChevronDown, Check, Search } from 'lucide-react';
 import { adminUsers, updateRole } from '@/lib/api';
 
+/** Roles disponibles en el sistema */
 const ROLES = ['cliente', 'operador', 'admin'];
 
 const ROLE_CONFIG: Record<string, { color: string; bg: string; icon: any }> = {

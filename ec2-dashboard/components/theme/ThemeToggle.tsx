@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * ThemeToggle — botón para alternar entre modo claro y oscuro.
+ * Soporta dos tamaños: 'sm' (sidebar admin) y 'md' (nav principal).
+ */
+
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 

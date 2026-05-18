@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * CreateOrderModal — modal lateral para crear nuevas órdenes.
+ * Permite agregar items con nombre, cantidad y precio,
+ * calcula total automáticamente, y publica al backend.
+ */
+
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Plus, Package, AlertCircle, Loader2, Trash2 } from 'lucide-react';

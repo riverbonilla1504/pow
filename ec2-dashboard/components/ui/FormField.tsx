@@ -1,3 +1,4 @@
+/** FormField — input reutilizable con label, icono, hint, y estilos del design system */
 import { ReactNode } from 'react';
 
 interface FormFieldProps {

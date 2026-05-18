@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * AuthShell — layout compartido para páginas de login y registro.
+ * Layout split: panel izquierdo con branding/promo, panel derecho con formulario.
+ * Incluye navegación entre login/registro y toggle de tema.
+ */
+
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Zap, ArrowLeft, ArrowRight } from 'lucide-react';

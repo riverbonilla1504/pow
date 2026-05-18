@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * RegisterPage — formulario de registro de nuevo usuario.
+ * Campos: email (requerido), password (requerido), teléfono (opcional).
+ * Al registrar exitosamente, guarda JWT y redirige al dashboard.
+ */
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';

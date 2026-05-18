@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * TwoFactorEnroll — flujo completo de activación de 2FA.
+ * Paso 1: genera secreto TOTP y muestra QR code.
+ * Paso 2: usuario ingresa código de su app para confirmar.
+ * Paso 3: muestra códigos de respaldo y completa el enrollment.
+ */
+
 import { useState } from 'react';
 import { Shield, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { enroll2fa, confirm2fa } from '@/lib/api';

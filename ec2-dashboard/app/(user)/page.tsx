@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * LandingPage — página principal de freck.lat.
+ * Compuesta por secciones: header, hero con escena 3D, cómo funciona,
+ * tecnologías usadas, y CTA final. Accesible sin autenticación.
+ */
+
 import { motion } from 'framer-motion';
 import LandingHeader from '@/components/landing/LandingHeader';
 import LandingHero from '@/components/landing/LandingHero';

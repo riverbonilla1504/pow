@@ -1,3 +1,7 @@
+/**
+ * ThemeScript — script inline que se ejecuta antes del paint del navegador.
+ * Evita el flash de tema incorrecto (FOIT) aplicando data-theme antes del render de React.
+ */
 import { THEME_STORAGE_KEY } from '@/lib/theme';
 
 const SCRIPT = `

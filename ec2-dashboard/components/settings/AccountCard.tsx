@@ -1,5 +1,7 @@
 'use client';
 
+/** AccountCard — tarjeta que muestra la información de la cuenta: email, rol, teléfono y 2FA */
+
 import { motion } from 'framer-motion';
 import { User, Mail, Phone, BadgeCheck } from 'lucide-react';
 import { useSettingsProfile } from '@/components/settings/SettingsProfileContext';

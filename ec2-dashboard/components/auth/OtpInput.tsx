@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * OtpInput — input de 6 dígitos para códigos TOTP/OTP.
+ * Soporta: auto-focus entre campos, paste de código completo,
+ * backspace entre campos, y callback onComplete cuando se llena.
+ */
+
 import {
   useRef,
   type CSSProperties,

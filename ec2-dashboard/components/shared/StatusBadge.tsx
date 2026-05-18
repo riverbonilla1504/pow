@@ -1,3 +1,8 @@
+/**
+ * StatusBadge — badge reutilizable para mostrar estados y tipos con colores semánticos.
+ * Soporta estados de orden (pending, shipped...), notificación (sent, failed),
+ * tipo (email, sms) y roles (admin, operador, cliente).
+ */
 const styles: Record<string, string> = {
   pending:   'bg-yellow-500/15 text-yellow-300 border-yellow-500/25',
   paid:      'bg-blue-500/15 text-blue-300 border-blue-500/25',

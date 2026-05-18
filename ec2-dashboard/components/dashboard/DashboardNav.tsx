@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * DashboardNav — barra de navegación superior del dashboard de usuario.
+ * Incluye: logo, links de navegación, toggle de tema, botón admin (si aplica), y logout.
+ */
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';

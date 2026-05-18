@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * UserDashboard — panel principal del usuario.
+ * Muestra: nav con perfil, stats de órdenes, tabla de mis órdenes,
+ * y modal para crear nuevas órdenes. Protegido por token JWT.
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';

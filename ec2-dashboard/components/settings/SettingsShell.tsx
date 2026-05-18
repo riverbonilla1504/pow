@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * SettingsShell — layout protegido para la sección de configuración.
+ * Verifica autenticación, carga perfil del usuario, y renderiza
+ * nav + sidebar de settings + contenido de la página activa.
+ */
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';

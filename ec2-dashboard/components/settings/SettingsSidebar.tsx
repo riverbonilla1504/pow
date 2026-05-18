@@ -1,5 +1,7 @@
 'use client';
 
+/** SettingsSidebar — sidebar de navegación dentro de la sección de configuración */
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Shield, LayoutDashboard } from 'lucide-react';

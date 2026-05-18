@@ -1,4 +1,11 @@
 'use client';
+
+/**
+ * TwoFactorSetup — componente de enrollment 2FA para el panel admin.
+ * Similar a TwoFactorEnroll pero con redirect a login al completar,
+ * ya que el admin necesita re-autenticarse con 2FA activo.
+ */
+
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Loader2, AlertCircle, CheckCircle } from 'lucide-react';

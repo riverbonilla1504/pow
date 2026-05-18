@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * RecoverForm — formulario de recuperación de cuenta con código de respaldo.
+ * Permite login cuando el usuario perdió acceso a su app TOTP.
+ * Requiere: email, password, y uno de los 8 códigos de respaldo generados.
+ */
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';

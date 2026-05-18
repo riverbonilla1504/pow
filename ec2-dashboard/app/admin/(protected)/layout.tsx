@@ -1,4 +1,12 @@
 'use client';
+
+/**
+ * AdminProtectedLayout — layout que protege todas las rutas admin.
+ * Verifica: 1) JWT válido, 2) rol admin, 3) 2FA verificado.
+ * Si falta alguno, muestra pantalla de error o enrollment de 2FA.
+ * Usa flex layout con sidebar sticky + main flexible.
+ */
+
 import { useEffect, useState } from 'react';
 import { hasToken, getTokenPayload, clearToken, isAdminRole } from '@/lib/api';
 import AdminSidebar from '@/components/admin/Sidebar';
@@ -67,8 +75,8 @@ export default function AdminProtectedLayout({ children }: { children: React.Rea
   return (
     <div className="flex min-h-screen">
       <AdminSidebar />
-      <main className="ml-56 flex-1 animate-fade-in py-6">
-        <div className="page-container">{children}</div>
+      <main className="flex-1 min-w-0 animate-fade-in py-6 px-6 lg:px-8">
+        {children}
       </main>
     </div>
   );
