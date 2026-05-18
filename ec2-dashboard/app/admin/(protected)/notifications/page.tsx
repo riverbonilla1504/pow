@@ -63,12 +63,7 @@ export default function NotificationsPage() {
           <span className="text-xs text-slate-600 uppercase tracking-wider">Tipo</span>
           {TYPES.map(t => (
             <button key={t} onClick={() => setType(t)}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all"
-              style={{
-                background: type === t ? 'rgba(0,237,100,0.15)' : 'rgba(255,255,255,0.04)',
-                border: type === t ? '1px solid rgba(0,237,100,0.3)' : '1px solid var(--border)',
-                color: type === t ? 'var(--green)' : '#64748b',
-              }}>
+              className={`filter-pill capitalize ${type === t ? 'filter-pill--active' : ''}`}>
               {t === 'all' ? 'Todos' : t.toUpperCase()}
             </button>
           ))}
@@ -77,12 +72,7 @@ export default function NotificationsPage() {
           <span className="text-xs text-slate-600 uppercase tracking-wider">Estado</span>
           {STATUSES.map(s => (
             <button key={s} onClick={() => setStatus(s)}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all"
-              style={{
-                background: status === s ? 'rgba(0,237,100,0.15)' : 'rgba(255,255,255,0.04)',
-                border: status === s ? '1px solid rgba(0,237,100,0.3)' : '1px solid var(--border)',
-                color: status === s ? 'var(--green)' : '#64748b',
-              }}>
+              className={`filter-pill capitalize ${status === s ? 'filter-pill--active' : ''}`}>
               {s === 'all' ? 'Todos' : s}
             </button>
           ))}
@@ -160,12 +150,7 @@ export default function NotificationsPage() {
                 const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
                 return (
                   <button key={p} onClick={() => setPage(p)}
-                    className="w-7 h-7 rounded-lg text-xs font-medium transition-all"
-                    style={{
-                      background: p === page ? 'rgba(0,237,100,0.15)' : 'transparent',
-                      color: p === page ? 'var(--green)' : '#64748b',
-                      border: p === page ? '1px solid rgba(0,237,100,0.3)' : '1px solid transparent',
-                    }}>
+                    className={`filter-pill w-7 h-7 p-0 flex items-center justify-center ${p === page ? 'filter-pill--active' : 'border-transparent bg-transparent'}`}>
                     {p}
                   </button>
                 );

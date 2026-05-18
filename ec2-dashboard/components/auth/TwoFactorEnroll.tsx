@@ -1,8 +1,9 @@
 'use client';
+
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Shield, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { enroll2fa, confirm2fa } from '@/lib/api';
+import OtpInput from '@/components/auth/OtpInput';
 
 interface TwoFactorEnrollProps {
   onComplete: (backupCodes: string[]) => void;
@@ -19,52 +20,59 @@ export default function TwoFactorEnroll({ onComplete, onCancel }: TwoFactorEnrol
   const [error, setError] = useState('');
 
   async function enroll() {
-    setLoading(true); setError('');
+    setLoading(true);
+    setError('');
     try {
       const data = await enroll2fa();
       setQr(data.qrCode);
       setSecret(data.secret);
       setStep('scan');
-    } catch (e: any) { setError(e.message); }
-    finally { setLoading(false); }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Error al activar 2FA');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function confirm() {
-    if (code.length !== 6) { setError('Ingresa el código de 6 dígitos'); return; }
-    setLoading(true); setError('');
+    if (code.length !== 6) {
+      setError('Ingresa el código de 6 dígitos');
+      return;
+    }
+    setLoading(true);
+    setError('');
     try {
       const data = await confirm2fa(code);
       const codes = data.backupCodes || [];
       setBackupCodes(codes);
       setStep('done');
-    } catch (e: any) { setError(e.message); }
-    finally { setLoading(false); }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Código inválido');
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (step === 'done') {
     return (
-      <div className="space-y-5">
-        <div className="text-center">
-          <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4"
-            style={{ background: 'rgba(0,237,100,0.1)', border: '1px solid rgba(0,237,100,0.2)' }}>
-            <CheckCircle size={24} style={{ color: 'var(--green)' }} />
+      <div className="settings-enroll__steps">
+        <div className="settings-enroll__head settings-enroll__head--center">
+          <div className="settings-enroll__icon settings-enroll__icon--success">
+            <CheckCircle size={24} aria-hidden />
           </div>
-          <h2 className="text-lg font-bold text-white">2FA Activado</h2>
-          <p className="text-xs text-slate-400 mt-1">Guarda estos códigos de respaldo en un lugar seguro</p>
+          <h2 className="settings-enroll__title">2FA activado</h2>
+          <p className="settings-enroll__subtitle">Guarda estos códigos de respaldo en un lugar seguro</p>
         </div>
-        <div className="grid grid-cols-2 gap-2 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)' }}>
+        <div className="settings-enroll__codes">
           {backupCodes.map((c, i) => (
-            <code key={i} className="text-xs font-mono text-slate-300 text-center py-1">{c}</code>
+            <code key={i}>{c}</code>
           ))}
         </div>
-        <div className="flex items-center gap-2 text-xs p-3 rounded-lg"
-          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }}>
-          <AlertCircle size={12} />
+        <div className="settings-enroll__warn" role="note">
+          <AlertCircle size={14} aria-hidden />
           Estos códigos no se mostrarán de nuevo.
         </div>
-        <button onClick={() => onComplete(backupCodes)}
-          className="w-full py-2.5 rounded-xl font-semibold text-black text-sm"
-          style={{ background: 'var(--green)' }}>
+        <button type="button" onClick={() => onComplete(backupCodes)} className="btn-primary auth-submit">
           Continuar
         </button>
       </div>
@@ -73,38 +81,48 @@ export default function TwoFactorEnroll({ onComplete, onCancel }: TwoFactorEnrol
 
   if (step === 'scan') {
     return (
-      <div className="space-y-5">
-        <h2 className="text-lg font-bold text-white text-center">Escanea el QR</h2>
-        <p className="text-xs text-slate-400 text-center">Abre tu app de autenticación y escanea este código</p>
-        {qr && (
-          <div className="flex justify-center">
-            <img src={qr} alt="QR Code" className="rounded-xl" style={{ width: 200, height: 200 }} />
+      <div className="settings-enroll__steps">
+        <div className="settings-enroll__head settings-enroll__head--center">
+          <h2 className="settings-enroll__title">Escanea el QR</h2>
+          <p className="settings-enroll__subtitle">Abre tu app de autenticación y escanea este código</p>
+        </div>
+        {qr ? (
+          <div className="settings-enroll__qr-wrap">
+            <img src={qr} alt="Código QR para 2FA" width={200} height={200} className="settings-enroll__qr" />
           </div>
-        )}
-        <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)' }}>
-          <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Clave manual</p>
-          <p className="text-xs font-mono text-slate-300 break-all select-all">{secret}</p>
+        ) : null}
+        <div className="settings-enroll__secret card-glass">
+          <p className="settings-enroll__secret-label">Clave manual</p>
+          <p className="settings-enroll__secret-value">{secret}</p>
         </div>
-        <div>
-          <label className="text-xs text-slate-500 uppercase tracking-wider block mb-2">Código de verificación</label>
-          <input type="text" value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            placeholder="000000" maxLength={6}
-            className="w-full text-center text-2xl tracking-[0.5em] font-mono py-3 rounded-xl text-white outline-none"
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)' }} />
+        <div className="auth-field w-full">
+          <label
+            className="mb-2 block text-center text-sm font-medium text-[var(--text-primary)]"
+            htmlFor="totp-code"
+          >
+            Código de verificación
+          </label>
+          <OtpInput id="totp-code" value={code} onChange={setCode} autoFocus />
         </div>
-        {error && <p className="text-red-400 text-xs flex items-center gap-1"><AlertCircle size={12} />{error}</p>}
-        <div className="flex gap-3">
-          {onCancel && (
-            <button type="button" onClick={onCancel}
-              className="flex-1 py-2.5 rounded-xl text-sm text-slate-400 hover:text-white transition-colors"
-              style={{ background: 'rgba(255,255,255,0.05)' }}>
+        {error ? (
+          <div className="auth-alert" role="alert">
+            <AlertCircle size={14} className="shrink-0" aria-hidden />
+            {error}
+          </div>
+        ) : null}
+        <div className="settings-enroll__actions">
+          {onCancel ? (
+            <button type="button" onClick={onCancel} className="settings-enroll__btn-secondary">
               Cancelar
             </button>
-          )}
-          <button onClick={confirm} disabled={loading || code.length !== 6}
-            className={`${onCancel ? 'flex-1' : 'w-full'} py-2.5 rounded-xl font-semibold text-black text-sm flex items-center justify-center gap-2 disabled:opacity-60`}
-            style={{ background: 'var(--green)' }}>
-            {loading ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+          ) : null}
+          <button
+            type="button"
+            onClick={confirm}
+            disabled={loading || code.length !== 6}
+            className={`btn-primary auth-submit${onCancel ? ' settings-enroll__btn-grow' : ''}`}
+          >
+            {loading ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <CheckCircle size={16} aria-hidden />}
             Confirmar
           </button>
         </div>
@@ -113,30 +131,35 @@ export default function TwoFactorEnroll({ onComplete, onCancel }: TwoFactorEnrol
   }
 
   return (
-    <div className="text-center space-y-6">
-      <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center"
-        style={{ background: 'rgba(0,237,100,0.1)', border: '1px solid rgba(0,237,100,0.2)' }}>
-        <Shield size={28} style={{ color: 'var(--green)' }} />
+    <div className="settings-enroll__steps settings-enroll__steps--intro">
+      <div className="settings-enroll__icon">
+        <Shield size={28} aria-hidden />
       </div>
-      <div>
-        <h1 className="text-xl font-bold text-white mb-2">Configurar 2FA</h1>
-        <p className="text-sm text-slate-400 leading-relaxed">
+      <div className="settings-enroll__head settings-enroll__head--center">
+        <h2 className="settings-enroll__title">Configurar 2FA</h2>
+        <p className="settings-enroll__subtitle">
           Necesitas una app como Google Authenticator o Authy para generar códigos de verificación.
         </p>
       </div>
-      {error && <p className="text-red-400 text-xs flex items-center justify-center gap-1"><AlertCircle size={12} />{error}</p>}
-      <div className="flex gap-3">
-        {onCancel && (
-          <button onClick={onCancel}
-            className="flex-1 py-2.5 rounded-xl text-sm text-slate-400 hover:text-white transition-colors"
-            style={{ background: 'rgba(255,255,255,0.05)' }}>
+      {error ? (
+        <div className="auth-alert" role="alert">
+          <AlertCircle size={14} className="shrink-0" aria-hidden />
+          {error}
+        </div>
+      ) : null}
+      <div className="settings-enroll__actions">
+        {onCancel ? (
+          <button type="button" onClick={onCancel} className="settings-enroll__btn-secondary">
             Cancelar
           </button>
-        )}
-        <button onClick={enroll} disabled={loading}
-          className={`${onCancel ? 'flex-1' : 'w-full'} py-2.5 rounded-xl font-semibold text-black text-sm flex items-center justify-center gap-2 disabled:opacity-60`}
-          style={{ background: 'var(--green)' }}>
-          {loading ? <Loader2 size={14} className="animate-spin" /> : <Shield size={14} />}
+        ) : null}
+        <button
+          type="button"
+          onClick={enroll}
+          disabled={loading}
+          className={`btn-primary auth-submit${onCancel ? ' settings-enroll__btn-grow' : ''}`}
+        >
+          {loading ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <Shield size={16} aria-hidden />}
           Activar 2FA
         </button>
       </div>

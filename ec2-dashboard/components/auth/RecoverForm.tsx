@@ -1,15 +1,14 @@
 'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Shield, Loader2, AlertCircle, Mail, Lock, Key } from 'lucide-react';
-import { setToken, isAdminHost } from '@/lib/api';
+import { setToken, recover2fa, adminHomePath } from '@/lib/api';
 
 interface RecoverFormProps {
   variant?: 'user' | 'admin';
 }
-
-const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.freck.lat';
 
 export default function RecoverForm({ variant = 'user' }: RecoverFormProps) {
   const router = useRouter();
@@ -22,15 +21,10 @@ export default function RecoverForm({ variant = 'user' }: RecoverFormProps) {
 
   async function handleRecover(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true); setError('');
+    setLoading(true);
+    setError('');
     try {
-      const res = await fetch(`${API}/auth/2fa/recover`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, backupCode }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Recovery failed');
+      const data = await recover2fa(email, password, backupCode);
 
       if (isAdmin) {
         const payload = JSON.parse(atob(data.token.split('.')[1]));
@@ -41,69 +35,99 @@ export default function RecoverForm({ variant = 'user' }: RecoverFormProps) {
       }
 
       setToken(data.token);
-      router.push(isAdmin ? '/' : '/dashboard');
-    } catch (err: any) { setError(err.message); }
-    finally { setLoading(false); }
+      router.push(isAdmin ? adminHomePath() : '/dashboard');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error al recuperar acceso');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <div className="glass rounded-2xl p-7">
-      <div className="flex items-center gap-2 mb-5" style={{ color: 'var(--green)' }}>
-        <Shield size={18} />
-        <h2 className="text-lg font-bold text-white">Recuperar acceso</h2>
-      </div>
-      <p className="text-sm text-slate-400 mb-6">
+    <form onSubmit={handleRecover} className="auth-form">
+      <p className="text-sm mb-1" style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
         Ingresa tus credenciales y un código de respaldo para recuperar el acceso a tu cuenta.
       </p>
-      <form onSubmit={handleRecover} className="space-y-4">
-        <div>
-          <label className="text-xs text-slate-500 uppercase tracking-wider mb-1.5 block">Email</label>
-          <div className="relative">
-            <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
-              className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition-all"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)' }}
-              onFocus={e => e.target.style.borderColor = 'var(--green)'}
-              onBlur={e => e.target.style.borderColor = 'var(--border)'}
-              placeholder="tu@email.com" />
+
+      <p className="auth-divider">Datos de recuperación</p>
+
+      <div className="auth-form__fields">
+        <div className="auth-field">
+          <label className="auth-label" htmlFor="recover-email">
+            Correo electrónico
+          </label>
+          <div className="auth-input-wrap">
+            <Mail size={16} className="auth-input-icon" aria-hidden />
+            <input
+              id="recover-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="auth-input"
+              placeholder="tu@email.com"
+              autoComplete="email"
+            />
           </div>
         </div>
-        <div>
-          <label className="text-xs text-slate-500 uppercase tracking-wider mb-1.5 block">Contraseña</label>
-          <div className="relative">
-            <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
-              className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition-all"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)' }}
-              onFocus={e => e.target.style.borderColor = 'var(--green)'}
-              onBlur={e => e.target.style.borderColor = 'var(--border)'}
-              placeholder="••••••••" />
+
+        <div className="auth-field">
+          <label className="auth-label" htmlFor="recover-password">
+            Contraseña
+          </label>
+          <div className="auth-input-wrap">
+            <Lock size={16} className="auth-input-icon" aria-hidden />
+            <input
+              id="recover-password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="auth-input"
+              placeholder="••••••••"
+              autoComplete="current-password"
+            />
           </div>
         </div>
-        <div>
-          <label className="text-xs text-slate-500 uppercase tracking-wider mb-1.5 block">Código de respaldo</label>
-          <div className="relative">
-            <Key size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
-            <input type="text" value={backupCode} onChange={e => setBackupCode(e.target.value)} required
-              className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm font-mono text-white placeholder-slate-600 outline-none transition-all"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)' }}
-              onFocus={e => e.target.style.borderColor = 'var(--green)'}
-              onBlur={e => e.target.style.borderColor = 'var(--border)'}
-              placeholder="a1b2c3d4" />
-          </div>
+
+        <div className="auth-field">
+          <label className="auth-label" htmlFor="recover-backup">
+            Código de respaldo
+          </label>
+          <motion.div className="auth-input-wrap">
+            <Key size={16} className="auth-input-icon" aria-hidden />
+            <input
+              id="recover-backup"
+              type="text"
+              value={backupCode}
+              onChange={(e) => setBackupCode(e.target.value)}
+              required
+              className="auth-input font-mono"
+              placeholder="a1b2c3d4"
+            />
+          </motion.div>
         </div>
-        {error && (
-          <div className="flex items-center gap-2 text-red-400 text-xs p-3 rounded-lg bg-red-500/10">
-            <AlertCircle size={13} />{error}
-          </div>
-        )}
-        <motion.button type="submit" disabled={loading} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-          className="w-full py-2.5 rounded-xl font-semibold text-black text-sm flex items-center justify-center gap-2 disabled:opacity-60"
-          style={{ background: 'var(--green)' }}>
-          {loading ? <Loader2 size={14} className="animate-spin" /> : null}
-          {loading ? 'Recuperando...' : 'Recuperar acceso'}
+      </div>
+
+      {error ? (
+        <div className="auth-alert" role="alert">
+          <AlertCircle size={14} className="shrink-0 mt-0.5" />
+          {error}
+        </div>
+      ) : null}
+
+      <div className="auth-form__footer">
+        <motion.button
+          type="submit"
+          disabled={loading}
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+          className="btn-primary auth-submit"
+        >
+          {loading ? <Loader2 size={16} className="animate-spin" aria-hidden /> : null}
+          {loading ? 'Verificando…' : 'Recuperar acceso'}
         </motion.button>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }

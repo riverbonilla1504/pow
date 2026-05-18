@@ -4,7 +4,13 @@ import RecoverForm from '@/components/auth/RecoverForm';
 
 export default function AdminRecoverPage() {
   return (
-    <AuthShell variant="admin" subtitle="Recuperar acceso" backHref="/login" backLabel="Volver al login">
+    <AuthShell
+      variant="admin"
+      heading="Recupera el acceso al panel"
+      subtitle="Recuperar acceso"
+      backHref="/admin/login"
+      backLabel="Volver al login"
+    >
       <RecoverForm variant="admin" />
     </AuthShell>
   );

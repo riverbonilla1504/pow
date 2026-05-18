@@ -7,7 +7,7 @@ import { adminUsers, updateRole } from '@/lib/api';
 const ROLES = ['cliente', 'operador', 'admin'];
 
 const ROLE_CONFIG: Record<string, { color: string; bg: string; icon: any }> = {
-  admin:    { color: '#00ed64', bg: 'rgba(0,237,100,0.12)',  icon: ShieldCheck },
+  admin:    { color: 'var(--green)', bg: 'var(--green-subtle)', icon: ShieldCheck },
   operador: { color: '#3b82f6', bg: 'rgba(59,130,246,0.12)', icon: Shield },
   cliente:  { color: '#64748b', bg: 'rgba(100,116,139,0.12)', icon: User },
 };
@@ -183,7 +183,7 @@ export default function UsersPage() {
                       <td className="px-5 py-3">
                         <span className="text-xs px-2 py-0.5 rounded-full"
                           style={u.two_factor_enabled
-                            ? { background: 'rgba(0,237,100,0.12)', color: 'var(--green)' }
+                            ? { background: 'var(--green-subtle)', color: 'var(--green)' }
                             : { background: 'rgba(100,116,139,0.1)', color: '#475569' }}>
                           {u.two_factor_enabled ? 'Activo' : 'Off'}
                         </span>

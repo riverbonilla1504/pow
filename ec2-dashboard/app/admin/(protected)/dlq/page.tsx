@@ -68,8 +68,7 @@ export default function DLQPage() {
       ) : messages.length === 0 ? (
         <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
           className="glass rounded-2xl flex flex-col items-center py-20 gap-4">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
-            style={{ background: 'rgba(0,237,100,0.1)', border: '1px solid rgba(0,237,100,0.2)' }}>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center callout-green">
             <AlertTriangle size={24} style={{ color: 'var(--green)' }} />
           </div>
           <p className="text-slate-300 font-semibold">DLQ vacío</p>

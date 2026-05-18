@@ -1,10 +1,13 @@
 'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Mail, Lock, Shield, AlertCircle, Loader2 } from 'lucide-react';
-import { login, verify2fa, setToken } from '@/lib/api';
+import { Mail, Lock, Shield, AlertCircle, Loader2 } from 'lucide-react';
+import { login, verify2fa, setToken, adminHomePath } from '@/lib/api';
+import OtpInput from '@/components/auth/OtpInput';
+import AuthShell from '@/components/layout/AuthShell';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -18,7 +21,8 @@ export default function AdminLoginPage() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true); setError('');
+    setLoading(true);
+    setError('');
     try {
       const res = await login(email, password);
       if (res.tempToken) {
@@ -31,15 +35,19 @@ export default function AdminLoginPage() {
           return;
         }
         setToken(res.token);
-        router.push('/');
+        router.push(adminHomePath());
       }
-    } catch (err: any) { setError(err.message); }
-    finally { setLoading(false); }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error al iniciar sesión');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handle2FA(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true); setError('');
+    setLoading(true);
+    setError('');
     try {
       const res = await verify2fa(code, tempToken);
       const payload = JSON.parse(atob(res.token.split('.')[1]));
@@ -48,98 +56,156 @@ export default function AdminLoginPage() {
         return;
       }
       setToken(res.token);
-      router.push('/');
-    } catch (err: any) { setError(err.message); }
-    finally { setLoading(false); }
+      router.push(adminHomePath());
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Código inválido');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <div className="auth-shell">
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full blur-[150px] opacity-15 pointer-events-none" style={{ background: 'var(--green)' }} />
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="auth-card relative">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--green)' }}>
-            <Zap size={17} className="text-black" />
-          </div>
-          <div>
-            <p className="font-bold text-white text-sm">admin.freck.lat</p>
-            <p className="text-xs text-slate-500">Panel de Administración</p>
-          </div>
-        </div>
+    <AuthShell
+      variant="admin"
+      heading="Inicia sesión en el panel"
+      subtitle="Panel de administración"
+      promoCta={{ href: '/', label: 'Volver al sitio' }}
+    >
+      <AnimatePresence mode="wait">
+        {step === 'creds' ? (
+          <motion.form
+            key="creds"
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -12 }}
+            onSubmit={handleLogin}
+            className="auth-form"
+          >
+            <p className="auth-divider">Con email y contraseña</p>
 
-        <div className="glass rounded-2xl p-7">
-          <AnimatePresence mode="wait">
-            {step === 'creds' ? (
-              <motion.form key="creds" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}
-                onSubmit={handleLogin} className="space-y-4">
-                <h2 className="text-xl font-bold text-white mb-5">Iniciar sesión</h2>
-                <div>
-                  <label className="text-xs text-slate-500 uppercase tracking-wider mb-1.5 block">Email</label>
-                  <div className="relative">
-                    <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
-                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                      className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition-all"
-                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)' }}
-                      onFocus={e => e.target.style.borderColor = 'var(--green)'}
-                      onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                      placeholder="admin@email.com" />
-                  </div>
+            <div className="auth-form__fields">
+              <div className="auth-field">
+                <label className="auth-label" htmlFor="admin-email">
+                  Correo electrónico
+                </label>
+                <motion.div className="auth-input-wrap">
+                  <Mail size={16} className="auth-input-icon" aria-hidden />
+                  <input
+                    id="admin-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="auth-input"
+                    placeholder="admin@email.com"
+                    autoComplete="email"
+                  />
+                </motion.div>
+              </div>
+
+              <motion.div className="auth-field">
+                <label className="auth-label" htmlFor="admin-password">
+                  Contraseña
+                </label>
+                <div className="auth-input-wrap">
+                  <Lock size={16} className="auth-input-icon" aria-hidden />
+                  <input
+                    id="admin-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="auth-input"
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                  />
                 </div>
-                <div>
-                  <label className="text-xs text-slate-500 uppercase tracking-wider mb-1.5 block">Contraseña</label>
-                  <div className="relative">
-                    <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
-                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
-                      className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition-all"
-                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)' }}
-                      onFocus={e => e.target.style.borderColor = 'var(--green)'}
-                      onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                      placeholder="••••••••" />
-                  </div>
-                </div>
-                {error && <div className="flex items-center gap-2 text-red-400 text-xs p-3 rounded-lg bg-red-500/10"><AlertCircle size={13} />{error}</div>}
-                <motion.button type="submit" disabled={loading} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                  className="w-full py-2.5 rounded-xl font-semibold text-black text-sm flex items-center justify-center gap-2 disabled:opacity-60"
-                  style={{ background: 'var(--green)' }}>
-                  {loading ? <Loader2 size={14} className="animate-spin" /> : null}
-                  {loading ? 'Iniciando...' : 'Iniciar Sesión'}
-                </motion.button>
-                <p className="text-center text-xs text-slate-500">
-                  <Link href="/login/recover" className="hover:text-white transition-colors" style={{ color: 'var(--green)' }}>
-                    ¿Perdiste tu código 2FA? Recuperar acceso
-                  </Link>
-                </p>
-              </motion.form>
-            ) : (
-              <motion.form key="2fa" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}
-                onSubmit={handle2FA} className="space-y-4">
-                <div className="flex items-center gap-2 mb-5" style={{ color: 'var(--green)' }}>
-                  <Shield size={18} />
-                  <h2 className="text-lg font-bold text-white">Verificación 2FA</h2>
-                </div>
-                <p className="text-sm text-slate-400 mb-4">Ingresa el código de tu app de autenticación</p>
-                <input type="text" value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} required maxLength={6} autoFocus
-                  className="w-full rounded-xl px-4 py-4 text-3xl text-center tracking-[0.4em] font-mono text-white outline-none"
-                  style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)' }}
-                  placeholder="000000" />
-                {error && <div className="flex items-center gap-2 text-red-400 text-xs p-3 rounded-lg bg-red-500/10"><AlertCircle size={13} />{error}</div>}
-                <div className="flex gap-3">
-                  <button type="button" onClick={() => { setStep('creds'); setError(''); }}
-                    className="flex-1 py-2.5 rounded-xl text-sm text-slate-400 hover:text-white transition-colors"
-                    style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    Atrás
-                  </button>
-                  <motion.button type="submit" disabled={loading} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                    className="flex-1 py-2.5 rounded-xl font-semibold text-black text-sm flex items-center justify-center gap-2 disabled:opacity-60"
-                    style={{ background: 'var(--green)' }}>
-                    {loading ? <Loader2 size={14} className="animate-spin" /> : 'Verificar'}
-                  </motion.button>
-                </div>
-              </motion.form>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-    </div>
+              </motion.div>
+            </div>
+
+            {error ? (
+              <div className="auth-alert" role="alert">
+                <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                {error}
+              </div>
+            ) : null}
+
+            <div className="auth-form__footer">
+              <motion.button
+                type="submit"
+                disabled={loading}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                className="btn-primary auth-submit"
+              >
+                {loading ? <Loader2 size={16} className="animate-spin" aria-hidden /> : null}
+                {loading ? 'Iniciando…' : 'Continuar'}
+              </motion.button>
+              <p className="auth-form__links">
+                <Link href="/admin/login/recover">¿Perdiste tu código 2FA?</Link>
+              </p>
+            </div>
+          </motion.form>
+        ) : (
+          <motion.form
+            key="2fa"
+            initial={{ opacity: 0, x: 12 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 12 }}
+            onSubmit={handle2FA}
+            className="auth-form"
+          >
+            <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--green)' }}>
+              <Shield size={18} aria-hidden />
+              <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                Verificación 2FA
+              </span>
+            </div>
+            <p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
+              Ingresa el código de tu app de autenticación
+            </p>
+
+            <div className="auth-field w-full">
+              <label
+                className="mb-2 block text-center text-sm font-medium text-[var(--text-primary)]"
+                htmlFor="admin-2fa"
+              >
+                Código de verificación
+              </label>
+              <OtpInput id="admin-2fa" value={code} onChange={setCode} autoFocus />
+            </div>
+
+            {error ? (
+              <motion.div className="auth-alert" role="alert">
+                <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                {error}
+              </motion.div>
+            ) : null}
+
+            <div className="auth-btn-row">
+              <button
+                type="button"
+                onClick={() => {
+                  setStep('creds');
+                  setError('');
+                }}
+                className="btn-ghost flex-1"
+              >
+                Atrás
+              </button>
+              <motion.button
+                type="submit"
+                disabled={loading}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                className="btn-primary auth-submit flex-1"
+              >
+                {loading ? <Loader2 size={16} className="animate-spin" aria-hidden /> : 'Verificar'}
+              </motion.button>
+            </div>
+          </motion.form>
+        )}
+      </AnimatePresence>
+    </AuthShell>
   );
 }

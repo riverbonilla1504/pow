@@ -11,9 +11,11 @@ export function proxy(request: NextRequest) {
     pathname.includes('.');
   if (isStatic) return NextResponse.next();
 
+  const isLocal =
+    host.startsWith('localhost') || host.startsWith('127.0.0.1') || host.includes(':');
   const isAdmin = host.startsWith('admin.');
 
-  if (!isAdmin && pathname.startsWith('/admin')) {
+  if (!isLocal && !isAdmin && pathname.startsWith('/admin')) {
     return NextResponse.redirect(new URL('https://admin.freck.lat/'));
   }
 

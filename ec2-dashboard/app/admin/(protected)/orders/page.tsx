@@ -59,12 +59,7 @@ export default function OrdersPage() {
           <Filter size={13} className="text-slate-600" />
           {STATUSES.map(s => (
             <button key={s} onClick={() => setStatus(s)}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all capitalize"
-              style={{
-                background: status === s ? 'rgba(0,237,100,0.15)' : 'rgba(255,255,255,0.04)',
-                border: status === s ? '1px solid rgba(0,237,100,0.3)' : '1px solid var(--border)',
-                color: status === s ? 'var(--green)' : '#64748b',
-              }}>
+              className={`filter-pill capitalize ${status === s ? 'filter-pill--active' : ''}`}>
               {s === 'all' ? 'Todos' : s}
             </button>
           ))}
@@ -132,12 +127,7 @@ export default function OrdersPage() {
                 const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
                 return (
                   <button key={p} onClick={() => setPage(p)}
-                    className="w-7 h-7 rounded-lg text-xs font-medium transition-all"
-                    style={{
-                      background: p === page ? 'rgba(0,237,100,0.15)' : 'transparent',
-                      color: p === page ? 'var(--green)' : '#64748b',
-                      border: p === page ? '1px solid rgba(0,237,100,0.3)' : '1px solid transparent',
-                    }}>
+                    className={`filter-pill w-7 h-7 p-0 flex items-center justify-center ${p === page ? 'filter-pill--active' : 'border-transparent bg-transparent'}`}>
                     {p}
                   </button>
                 );

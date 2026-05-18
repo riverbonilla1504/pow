@@ -67,7 +67,9 @@ export default function AdminProtectedLayout({ children }: { children: React.Rea
   return (
     <div className="flex min-h-screen">
       <AdminSidebar />
-      <main className="ml-56 flex-1 p-6 animate-fade-in">{children}</main>
+      <main className="ml-56 flex-1 animate-fade-in py-6">
+        <div className="page-container">{children}</div>
+      </main>
     </div>
   );
 }

@@ -32,10 +32,7 @@ export default function FormField({ label, hint, icon, type = 'text', value, onC
           minLength={minLength}
           autoFocus={autoFocus}
           placeholder={placeholder}
-          className={`w-full rounded-xl ${icon ? 'pl-9' : 'pl-4'} pr-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition-all`}
-          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)' }}
-          onFocus={e => e.target.style.borderColor = 'var(--green)'}
-          onBlur={e => e.target.style.borderColor = 'var(--border)'}
+          className={`input-base rounded-xl ${icon ? 'pl-9' : 'pl-4'} pr-4 py-2.5 text-sm`}
         />
       </div>
     </div>
