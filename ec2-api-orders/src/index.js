@@ -1,5 +1,5 @@
 require('dotenv').config();
-// v1.0.2
+// CD verified
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
